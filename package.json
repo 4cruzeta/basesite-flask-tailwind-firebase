@@ -1,0 +1,20 @@
+{
+  "name": "edcat-flask",
+  "version": "1.0.0",
+  "description": "Starting a site from root. First thing is to configur dev.nix to install base environment.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.16"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.16"
+  }
+}
