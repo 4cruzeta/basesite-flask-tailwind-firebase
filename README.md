@@ -65,31 +65,37 @@ Adotamos o padrão **"Application Factory"** para organizar o código Flask, tor
 └── tailwind.config.js    # Configuração do Tailwind CSS
 ```
 
-### 4. Próximos Passos
+### 4. A Saga do Deploy: Do Local à Nuvem com Cloud Run
 
-- [ ] Continuar o desenvolvimento das funcionalidades.
-- [ ] Configurar o deploy no Firebase App Hosting.
-- [ ] Detalhar a configuração do Tailwind.
+Nosso objetivo era fazer o deploy da aplicação, mas o caminho se mostrou mais complexo do que o esperado. Aqui está a história de como superamos os desafios.
 
-### 5. Traduções:
+#### O Desafio do Tailwind 4 e o Docker
 
+O primeiro obstáculo foi garantir que nosso processo de build do CSS, usando a versão mais recente do Tailwind CSS 4, funcionasse de forma confiável dentro de um contêiner Docker.
+
+A solução foi adotar uma abordagem de **build multi-estágio (multi-stage build)** no nosso `Dockerfile`:
+- **Estágio 1 (Builder):** Criamos um contêiner temporário com Node.js apenas para instalar as dependências de front-end e compilar o CSS.
+- **Estágio 2 (Final):** Criamos um contêiner Python limpo e enxuto. A única coisa que trouxemos do primeiro estágio foi o arquivo `style.css` já pronto. O resultado foi uma imagem Docker leve, segura e otimizada para produção.
+
+#### O Mistério do "Service Unavailable" e o Mísero Ponto
+
+Mesmo com o build bem-sucedido, o Cloud Run nos presenteava com um frustrante "Service Unavailable". A aplicação estava sendo construída, mas não iniciava na nuvem. Após uma investigação minuciosa, o culpado foi encontrado em `main.py`: um único ponto.
+
+A linha `from .views import views` (uma importação relativa) funcionava perfeitamente no ambiente de desenvolvimento local, mas quebrava o Gunicorn (o servidor usado em produção). Ao alterá-la para uma importação absoluta (`from views import views`), a aplicação finalmente pôde ser iniciada, resolvendo o mistério e colocando nosso site no ar. Uma lição valiosa: o que funciona em desenvolvimento nem sempre funciona em produção.
+
+### 5. Traduções
+
+```bash
 pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot .
-
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot --no-wrap .
-
 pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l en_US
-
 pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l pt_BR
-
-### Efetuar as traduções
-
-### Compilar as traduções
+# Efetuar as traduções nos arquivos .po
 pybabel compile -d edcat_root/translations
+```
 
-export FLASK_APP=edcat_root/main.py && pybabel compile -d edcat_root/translations
+### 6. Notas de Desenvolvimento
 
-
-### O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
+> O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
 
 Carregue o Web preview com Hard Restart e abra o External Website para conseguir ver as alterações em suas páginas.
 

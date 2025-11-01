@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": "edcat_root",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "edcat-backend-service",
+          "region": "us-east4"
+        }
+      }
+    ]
+  }
+}

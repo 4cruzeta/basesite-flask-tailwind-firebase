@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, session, redirect, url_for
 from flask_babel import Babel
-from .views import views # Import views from the local package
+from views import views # Import views from the local package
 
 # This function is called by Babel to determine which language to use.
 # It checks for a language choice in the user's session first.
