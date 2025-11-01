@@ -70,3 +70,26 @@ Adotamos o padrão **"Application Factory"** para organizar o código Flask, tor
 - [ ] Continuar o desenvolvimento das funcionalidades.
 - [ ] Configurar o deploy no Firebase App Hosting.
 - [ ] Detalhar a configuração do Tailwind.
+
+### 5. Traduções:
+
+pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot .
+
+pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot --no-wrap .
+
+pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l en_US
+
+pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l pt_BR
+
+### Efetuar as traduções
+
+### Compilar as traduções
+pybabel compile -d edcat_root/translations
+
+export FLASK_APP=edcat_root/main.py && pybabel compile -d edcat_root/translations
+
+
+### O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
+
+Carregue o Web preview com Hard Restart e abra o External Website para conseguir ver as alterações em suas páginas.
+
