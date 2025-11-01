@@ -52,3 +52,6 @@ Thumbs.db
 # Environment variables
 .env
 .flaskenv
+edcat_root/fire-auth.json
+edcat_root/fire-conf.py
+edcat_root/static/fire-conf.js
