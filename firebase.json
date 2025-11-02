@@ -14,17 +14,6 @@
           "region": "us-east4"
         }
       }
-    ],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          {
-            "key": "Vary",
-            "value": "Accept-Language"
-          }
-        ]
-      }
     ]
   }
 }

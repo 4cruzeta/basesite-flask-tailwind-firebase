@@ -1,20 +1,19 @@
-<!-- File ./templates/index.html  -->
+<!-- File ./templates/index.html (Restored for Server-Side Rendering) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{url_for('static',filename='css/output.css')}}" rel="stylesheet">
-    <title>Document</title>
+    <title>{{ _('EDCAT') }}</title>
 </head>
 <body>
   <div class="container relative flex flex-col justify-between h-full max-w-6xl px-10 mx-auto xl:px-0 mt-5">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-3xl font-extrabold leading-tight text-gray-900">{{ _('EDCAT Home Page') }}</h2>
         <div class="text-sm font-medium">
-            <!-- Corrected lang='en' to lang='en_US' to match the Babel configuration -->
-            <a href="{{ url_for('set_language', lang='en_US') }}" class="text-gray-600 hover:text-indigo-500 px-2">English</a> |
-            <a href="{{ url_for('set_language', lang='pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2">Português</a>
+            <a href="{{ url_for('views.home', lang_code='en_US') }}" class="text-gray-600 hover:text-indigo-500 px-2">English</a> |
+            <a href="{{ url_for('views.home', lang_code='pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2">Português</a>
         </div>
     </div>
     <p class="mb-12 text-lg text-gray-500">{{ _('Welcome to our new website!') }}<br>{{ _('We\'re adjusting our system to make our services available in this space.') }}</p>
