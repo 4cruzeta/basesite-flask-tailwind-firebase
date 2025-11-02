@@ -10,9 +10,20 @@
       {
         "source": "**",
         "run": {
-          "serviceId": "edcat-backend-service",
+          "serviceId": "edcat-container",
           "region": "us-east4"
         }
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Vary",
+            "value": "Accept-Language"
+          }
+        ]
       }
     ]
   }

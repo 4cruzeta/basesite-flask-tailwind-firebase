@@ -5,10 +5,12 @@ from views import views # Import views from the local package
 
 # This function is called by Babel to determine which language to use.
 # It checks for a language choice in the user's session first.
+# If not found, it tries to match the browser's language.
+# If that also fails, it defaults to 'pt_BR' as a fallback.
 def get_locale():
     if 'language' in session:
         return session['language']
-    return request.accept_languages.best_match(['en_US', 'pt_BR'])
+    return request.accept_languages.best_match(['pt_BR', 'en_US']) or 'pt_BR'
 
 # Create and configure the Flask app instance
 app = Flask(__name__, template_folder='pages/templates', static_folder='static')
@@ -28,6 +30,12 @@ app.register_blueprint(views, url_prefix='/')
 def set_language(lang=None):
     session['language'] = lang
     return redirect(request.referrer or url_for('views.home'))
+
+# Add 'Vary' header to all responses to help CDN caching
+@app.after_request
+def add_vary_header(response):
+    response.headers['Vary'] = 'Accept-Language'
+    return response
 
 # This block runs the app in a development server.
 if __name__ == '__main__':
