@@ -20,7 +20,7 @@ msgstr ""
 
 #: edcat_root/pages/templates/index.html:11
 msgid "EDCAT Home Page"
-msgstr "Pagina Inicial do EDCAT"
+msgstr "Página Inicial do EDCAT"
 
 #: edcat_root/pages/templates/index.html:16
 msgid "Welcome to our new website!"

@@ -1,0 +1,6 @@
+flask
+flask-babel
+firebase-admin
+google-cloud-secret-manager
+gunicorn
+whitenoise

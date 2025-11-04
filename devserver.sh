@@ -3,9 +3,8 @@
 # Activate the virtual environment
 source .venv/bin/activate
 
-# Run Tailwind in watch mode in the background
-echo "Starting Tailwind CSS in watch mode..."
-npx tailwindcss -i edcat_root/static/css/input.css -o edcat_root/static/css/output.css --watch &
+# The Tailwind CSS watch process is now handled by the onStart hook in .idx/dev.nix
+# to avoid redundancy and potential version conflicts.
 
 # Change to the application directory so that Python can find the modules
 cd edcat_root

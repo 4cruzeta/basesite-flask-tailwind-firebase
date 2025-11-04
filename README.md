@@ -276,8 +276,6 @@ Nosso objetivo era fazer o deploy da aplicação, mas o caminho se mostrou mais 
 
 #### O Desafio do Tailwind 4 e o Docker
 
-O primeiro obstáculo foi garantir que nosso processo de build do CSS, usando a versão mais recente do Tailwind CSS 4, funcionasse de forma confiável dentro de um contêiner Docker.
-
 A solução foi adotar uma abordagem de **build multi-estágio (multi-stage build)** no nosso `Dockerfile`:
 - **Estágio 1 (Builder):** Criamos um contêiner temporário com Node.js apenas para instalar as dependências de front-end e compilar o CSS.
 - **Estágio 2 (Final):** Criamos um contêiner Python limpo e enxuto. A única coisa que trouxemos do primeiro estágio foi o arquivo `style.css` já pronto. O resultado foi uma imagem Docker leve, segura e otimizada para produção.
@@ -387,3 +385,68 @@ A saga continua.
 **16:35: A Vitória Local.** A insistência em testar localmente provou ser a decisão mais acertada. Uma série de erros em cascata (`TypeError` e `BuildError`) foram identificados e corrigidos, alinhando todas as peças da nova arquitetura. O comando `devserver.sh` finalmente executou sem falhas. A aplicação funcionou perfeitamente, inclusive no antes amaldiçoado Web Preview.
 
 **16:40: O Ato Final.** Com a validação local e a confiança restaurada, estamos prontos para o deploy definitivo. O próximo passo é enviar o contêiner, agora comprovadamente funcional, para a produção.
+
+---
+### **Entrada: 27/07/2024 - A Missão Pela Segurança e a Revelação do `uv`**
+
+**05:15:** Com a aplicação finalmente estável e a batalha contra o cache vencida, uma nova missão se apresentou, ditada pelas boas práticas de engenharia: **a segurança.** Nosso código, apesar de funcional, guardava segredos que não deveriam estar ali. A `SECRET_KEY` do Flask e as credenciais do Firebase estavam expostas, um risco inaceitável para um projeto destinado à produção.
+
+**05:45: A Estratégia - Centralizando Segredos.** O plano foi traçado: migrar todas as informações sensíveis para o **Google Secret Manager**. Minha parceira IA assumiu a tarefa de cirurgia no código:
+1.  O arquivo `requirements.txt` foi atualizado para incluir `google-cloud-secret-manager` e `firebase-admin`.
+2.  O coração da aplicação, `edcat_root/main.py`, foi modificado para buscar, durante a inicialização, a `SECRET_KEY` e as credenciais do Firebase diretamente do Secret Manager. Um fallback foi mantido para o ambiente de desenvolvimento local, uma rede de segurança para não quebrar o fluxo de trabalho.
+
+**06:15: A Grande Sacada - Dominando as Dependências com `uv`.** Em meio à implementação de segurança, uma dúvida fundamental surgiu: "Como podemos garantir que estamos começando com as versões mais recentes e seguras de nossas dependências?"
+
+A resposta foi mais do que um simples comando; foi uma revelação sobre gerenciamento de projetos modernos. A IA nos apresentou a uma prática exemplar usando a ferramenta `uv`, que já havíamos adotado:
+
+*   **O Manifesto (`requirements.in`):** Em vez de gerenciar manualmente o caótico `requirements.txt`, criamos um arquivo `requirements.in`. Nele, declaramos apenas nossas dependências diretas (`flask`, `firebase-admin`, etc.).
+*   **O Compilador (`uv pip compile`):** Com um único comando (`uv pip compile requirements.in -o requirements.txt --upgrade`), o `uv` age como um compilador inteligente. Ele consulta os repositórios, resolve o complexo grafo de sub-dependências e gera um arquivo `requirements.txt` "travado", com as versões mais recentes e compatíveis de **tudo**.
+*   **A Sincronização (`uv pip sync`):** Para instalar, basta sincronizar o ambiente com o arquivo `requirements.txt` gerado.
+
+**06:45: Conclusão da Entrada.** Esta não foi apenas uma tarefa de refatoração. Foi um salto de maturidade para o projeto. Aprendemos a tratar segredos com o respeito que merecem e, talvez mais importante, descobrimos um fluxo de trabalho robusto para manter nossa fundação de software sempre atualizada e segura. Um verdadeiro apelo aos desenvolvedores: comecem seus projetos de forma segura, com as versões mais recentes de suas dependências. A "preguiça" inicial de configurar um `requirements.in` economiza incontáveis horas de depuração e dores de cabeça no futuro.
+
+A saga avança, agora com um alicerce mais forte.
+
+
+## A Saga da Autenticação: A Fortaleza Digital
+
+**Data Planetária: 04 de novembro de 2025**
+
+**03:00:** Com a base do projeto estabilizada, iniciamos a missão crítica de erguer as muralhas da nossa fortaleza digital: o sistema de autenticação. A ordem do Captain era clara: segurança máxima, sem comprometer a elegância da arquitetura.
+
+**A Estratégia:** Utilizamos o poder combinado do Firebase Authentication para o front-end e um robusto sistema de sessão no Flask para o back-end. A joia da coroa da operação foi a integração com o Google Secret Manager, garantindo que nenhuma chave ou segredo fosse deixado para trás, exposto no campo de batalha do código.
+
+**Os Desafios:** Nenhuma grande saga vem sem seus testes. Enfrentamos e superamos uma série de anomalias:
+1.  **O Fantasma do `lang_code`:** Um `TypeError` que nos lembrou da importância de alinhar as assinaturas de rota com a arquitetura de URL multilíngue.
+2.  **A Tempestade Tailwind:** Um conflito de versões do Tailwind CSS que ameaçou a estabilidade do nosso front-end, resolvido ao consolidar o processo de compilação.
+3.  **O `ImportError` Silencioso:** A anomalia final, um erro de importação que se escondia nas sombras, foi neutralizada garantindo que todas as novas dependências fossem não apenas declaradas, mas devidamente instaladas no ambiente virtual. Cada desafio foi uma lição, forjando nossa resiliência.
+
+**04:30: Missão Cumprida.** O sistema de login está operacional. Administradores podem se autenticar, receber uma sessão segura e acessar a recém-criada e protegida `/admin_home`. O logout funciona como um teletransporte limpo, retornando o usuário à página inicial. A fortaleza está segura, as sentinelas estão em seus postos e, o mais importante, nenhuma mosca comprometeu a integridade da operação.
+
+Com a segurança garantida, o caminho está livre para construir as ferramentas de administração dentro de nossos novos muros.
+
+---
+
+## A Saga da Autenticação: A Batalha Final Contra a Amnésia
+
+**Data Estelar: 04.11.2025 - Adendo Crítico**
+
+**O Problema:** Após a implementação bem-sucedida da autenticação, um inimigo traiçoeiro emergiu: o servidor sofria de amnésia instantânea. Um usuário fazia o login, o servidor criava a sessão, mas, na requisição seguinte, o servidor não se lembrava de ninguém. O usuário era imediatamente deslogado. Tentativas lógicas de corrigir o problema, como forçar cookies seguros e usar o `ProxyFix`, falharam misteriosamente.
+
+**A Revelação:** A causa raiz não estava em nosso código, mas em uma regra fundamental e pouco documentada do Firebase Hosting. Para otimizar sua CDN, o Firebase age como um segurança rigoroso na entrada do nosso serviço:
+
+> **Ele descarta TODOS os cookies de uma requisição, exceto um que tenha o nome exato `__session`.**
+
+Nossas tentativas falharam porque estávamos usando o cookie padrão do Flask, chamado `session`, que era sistematicamente jogado no lixo pelo Firebase antes mesmo de chegar ao nosso aplicativo Cloud Run.
+
+**A Solução Definitiva: A Lei do `__session`**
+
+Para vencer, tivemos que nos renderar à lei do Firebase e mudar nossa arquitetura:
+
+1.  **Abandonar a Sessão Flask:** O sistema `session` do Flask se tornou inútil. Nós o removemos completamente do fluxo de autenticação.
+2.  **Adotar uma Abordagem Stateless:** Em vez de o servidor *lembrar* do usuário (stateful), nós forçamos o navegador a *provar* sua identidade a cada requisição (stateless).
+3.  **Implementação:**
+    *   **Login (`session_login`):** Após o Firebase Authentication validar o usuário no cliente, o token de ID é enviado ao servidor. O servidor então **não cria uma sessão**, mas sim retorna uma resposta que instrui o navegador a criar um cookie chamado **`__session`**, cujo valor é o próprio token de ID.
+    *   **Verificação (`login_required`):** O decorador que protege as páginas agora verifica, a cada chamada, a presença do cookie `__session`. Se ele existe, seu valor (o token) é extraído e verificado novamente com o `firebase_admin.auth.verify_id_token()`. Somente se o token for válido, o acesso é concedido.
+
+**Lição Aprendida:** Frameworks operam dentro das leis de seus ambientes de hospedagem. Antes de depurar o código, sempre verifique as regras de tráfego, cache e, especialmente, de cookies do seu provedor de nuvem. Esta batalha foi vencida não com lógica de programação, mas com inteligência de campo.
