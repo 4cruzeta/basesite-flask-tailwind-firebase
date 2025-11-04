@@ -2,8 +2,8 @@
 <div class="flex justify-between items-center mb-4">
     <h2 class="text-3xl font-extrabold leading-tight text-gray-900">{{ _('EDCAT') }}</h2>
     <div class="text-sm font-medium">
-        <a href="{{ url_for('views.home', lang_code='en_US') }}" class="text-gray-600 hover:text-indigo-500 px-2">English</a> |
-        <a href="{{ url_for('views.home', lang_code='pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2">Português</a> |
+        <a href="{{ change_lang_url('en_US') }}" class="text-gray-600 hover:text-indigo-500 px-2">English</a> |
+        <a href="{{ change_lang_url('pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2">Português</a> |
         <a href="{{ url_for('views.login', lang_code=g.lang_code or 'pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2 font-bold">{{ _('Login') }}</a>
     </div>
 </div>

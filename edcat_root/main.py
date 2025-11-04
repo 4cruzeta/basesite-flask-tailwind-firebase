@@ -102,7 +102,28 @@ def root_redirect():
 # --- Register Blueprints ---
 app.register_blueprint(views, url_prefix='/<lang_code>')
 
-# --- Template Context Processor ---
+# --- Template Context Processors ---
+@app.context_processor
+def inject_language_switcher():
+    """
+    Injects a function into templates to generate URLs for the current
+    page in a different language. This maintains the user's current page
+    when they switch languages.
+    """
+    def change_lang_url(lang_code):
+        if request.endpoint and request.view_args:
+            view_args = request.view_args.copy()
+            view_args['lang_code'] = lang_code
+            try:
+                return url_for(request.endpoint, **view_args)
+            except:
+                # Fallback if URL building fails for any reason
+                return url_for('views.home', lang_code=lang_code)
+        # Fallback for pages without a clear endpoint (like 404)
+        return url_for('views.home', lang_code=lang_code)
+
+    return dict(change_lang_url=change_lang_url)
+
 @app.context_processor
 def inject_gettext():
     return dict(_=_)
