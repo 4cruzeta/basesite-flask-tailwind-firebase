@@ -1,23 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ g.lang_code or 'pt_BR' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
     <title>{{ _('Admin Dashboard') }} - {{ _('EDCAT') }}</title>
-</head><body>
+</head>
+<body class="bg-gray-50">
     <div class="container relative flex flex-col justify-between h-full max-w-6xl px-10 mx-auto xl:px-0 mt-5">
         {% include 'header.html' %}
 
-        <div class="flex flex-col items-center pt-12">
-            <h3 class="text-2xl font-bold leading-tight text-gray-900">{{ _('Admin Dashboard') }}</h3>
-            <p class="mb-6 text-gray-600">
-                {{ _('Welcome,') }} <b>{{ email or _('Administrator') }}</b>.
-            </p>
-            <p class="mb-6">
-                {{ _('This page is protected. Only logged-in users can see this.') }}
-            </p>
-            <a href="{{ url_for('views.logout', lang_code=g.lang_code) }}" class="text-indigo-500 hover:text-indigo-700">{{ _('Logout') }}</a>
+        <div class="w-full mx-auto mt-12 mb-16">
+            <div class="flex flex-col items-center justify-center mb-12">
+                <h2 class="text-3xl font-bold leading-tight text-gray-900">{{ _('Admin Dashboard') }}</h2>
+                <p class="text-gray-600">
+                    {{ _('Welcome,') }} <b>{{ email or _('Administrator') }}</b>.
+                </p>
+            </div>
+
+            <!-- User Management Section -->
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                
+                <!-- Create New User Form -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-semibold text-gray-800 border-b pb-2 mb-4">{{ _('Create New User') }}</h3>
+                    <form action="{{ url_for('views.create_user', lang_code=g.lang_code) }}" method="POST" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="fullName" class="block text-sm font-medium text-gray-700">{{ _('Full Name') }}</label>
+                                <input type="text" name="fullName" id="fullName" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">{{ _('Email Address') }}</label>
+                                <input type="email" name="email" id="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700">{{ _('Password') }}</label>
+                                <input type="password" name="password" id="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700">{{ _('Subscribed Services') }}</label>
+                            <div class="mt-2 space-y-2">
+                                <div class="flex items-center">
+                                    <input id="service_raga" name="services" type="checkbox" value="RAGA" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="service_raga" class="ml-3 block text-sm font-medium text-gray-700">RAGA</label>
+                                </div>
+                                <!-- Add other services here in the future -->
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                {{ _('Create User') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Existing Users List -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 border-b pb-2 mb-4">{{ _('Existing Users') }}</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ _('Full Name') }}</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ _('Email') }}</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ _('Role') }}</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ _('Services') }}</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ _('Status') }}</th>
+                                    <th scope="col" class="relative px-6 py-3">
+                                        <span class="sr-only">{{ _('Actions') }}</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for user in users %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.full_name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.role }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ user.subscribed_services | join(', ') if user.subscribed_services else _('None') }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-blue-100 text-blue-800' if user.status == 'active' else 'bg-red-100 text-red-800' }}">
+                                                {{ user.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <a href="#" class="text-indigo-600 hover:text-indigo-900">{{ _('Edit') }}</a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
+                                            {{ _('No users found.') }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

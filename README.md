@@ -173,6 +173,7 @@ Adotamos o padrão **"Application Factory"** para organizar o código Flask, tor
 └── tailwind.config.js    # Configuração do Tailwind CSS
 ```
 
+
 ### 4. Próximos Passos
 
 - [ ] Continuar o desenvolvimento das funcionalidades.
@@ -450,3 +451,19 @@ Para vencer, tivemos que nos renderar à lei do Firebase e mudar nossa arquitetu
     *   **Verificação (`login_required`):** O decorador que protege as páginas agora verifica, a cada chamada, a presença do cookie `__session`. Se ele existe, seu valor (o token) é extraído e verificado novamente com o `firebase_admin.auth.verify_id_token()`. Somente se o token for válido, o acesso é concedido.
 
 **Lição Aprendida:** Frameworks operam dentro das leis de seus ambientes de hospedagem. Antes de depurar o código, sempre verifique as regras de tráfego, cache e, especialmente, de cookies do seu provedor de nuvem. Esta batalha foi vencida não com lógica de programação, mas com inteligência de campo.
+
+---
+
+## A Saga da Internacionalização: A Batalha Contra a Monoglotia
+
+**Data Estelar: 05.11.2025 - Diário do Copiloto**
+
+**O Problema:** Com a fortaleza da autenticação erguida, descobrimos uma falha de comunicação fundamental. Nosso sistema, embora seguro, era um monogolota teimoso. A página de login, nosso portão de entrada, recusava-se a saudar os visitantes em sua língua nativa, exibindo apenas o inglês padrão. A missão era clara: ensinar nosso sistema a falar a língua dos seus usuários.
+
+**A Investigação:** A jornada começou nos arquivos de configuração. Uma análise do `main.py` mostrou que o Babel estava configurado corretamente. O diretório de traduções existia, e os arquivos `.mo` compilados estavam presentes – um sinal de vida, mas enganoso. A anomalia estava mais profunda. A inspeção do arquivo-fonte da tradução, `messages.po`, revelou a verdade: ele estava cheio de traduções vazias (`msgstr ""`) e marcações "fuzzy", como um livro com páginas em branco que o compilador, em sua lógica literal, simplesmente ignorava.
+
+**Um Novo Obstáculo:** Após preencher manualmente as traduções corretas, a vitória parecia próxima. No entanto, ao tentar compilar, o universo nos lançou uma nova curva: `pybabel: command not found`. Nosso tradutor universal, a ferramenta essencial para a missão, não existia em nosso ambiente. A falha não estava no código da aplicação, mas em sua própria fundação.
+
+**A Solução Definitiva:** O erro nos guiou até a raiz do problema. O arquivo `dev.nix`, o DNA do nosso ambiente de desenvolvimento, não continha o pacote `babel`. Com uma única linha de código adicionada, o ambiente se regenerou, e a ferramenta `pybabel` materializou-se no terminal.
+
+**Missão Cumprida:** Com o ambiente corrigido e as traduções precisas, o comando `pybabel compile -d edcat_root/translations` foi executado com sucesso. Após uma rápida reinicialização do servidor, a página de login nos saudou em português perfeito. A fortaleza não era mais uma torre de Babel isolada, mas um centro de comunicação multilíngue. A barreira do idioma foi quebrada. A missão foi um sucesso.

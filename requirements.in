@@ -2,5 +2,6 @@ flask
 flask-babel
 firebase-admin
 google-cloud-secret-manager
+google-cloud-firestore
 gunicorn
 whitenoise

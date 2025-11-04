@@ -3,6 +3,10 @@
 # Activate the virtual environment
 source .venv/bin/activate
 
+# CRITICAL: EXPORT PROJECT ID
+# This ensures the application knows which GCP project to use for accessing secrets.
+export GOOGLE_CLOUD_PROJECT=edcat-site
+
 # The Tailwind CSS watch process is now handled by the onStart hook in .idx/dev.nix
 # to avoid redundancy and potential version conflicts.
 

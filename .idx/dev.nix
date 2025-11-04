@@ -26,6 +26,7 @@
           command = ["./devserver.sh"];
           env = {
             PORT = "$PORT";
+            GOOGLE_CLOUD_PROJECT = "edcat-site";
           };
           manager = "web";
         };
@@ -35,9 +36,10 @@
     workspace = {
       # Runs when a workspace is first created
       onCreate = {
-        create-venv = ''
+        install-deps = ''
           python -m venv .venv
           source .venv/bin/activate
+          uv pip install -r requirements.txt
         '';
         # Example: install JS dependencies from NPM
         # npm-install = "npm install";

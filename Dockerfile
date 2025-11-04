@@ -30,7 +30,7 @@ WORKDIR /app
 RUN pip install uv
 
 # Copy only the requirements file to leverage Docker cache
-COPY edcat_root/requirements.txt .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN uv pip install --no-cache-dir -r requirements.txt --system
