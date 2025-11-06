@@ -1,4 +1,5 @@
 
+import os
 import json
 from flask import Blueprint, render_template, current_app, request, jsonify, redirect, url_for, g
 from firebase_admin import auth
@@ -12,7 +13,7 @@ views = Blueprint('views', __name__)
 
 
 def login_required(view):
-    """Decorator that verifies session, syncs roles, and prepares user data."""
+    """Stateless decorator: verifies the '__session' cookie token on every request."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         lang_code = kwargs.get('lang_code', 'pt_BR')
@@ -29,22 +30,22 @@ def login_required(view):
 
             admin_emails_str = get_secret('ADMIN_USERS')
             admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
-            is_admin_by_secret = email in admin_emails
+            current_user_role = 'admin' if email in admin_emails else 'user'
 
-            role_to_set = 'admin' if is_admin_by_secret else 'user'
-            g.user_role = role_to_set
+            g.user_profile = {
+                'uid': uid,
+                'email': email,
+                'full_name': g.user.get('name', ''),
+                'role': current_user_role,
+                'status': 'active'
+            }
 
-            if db:
-                user_ref = db.collection('users').document(uid)
-                user_doc = user_ref.get()
-                current_role = user_doc.to_dict().get('role') if user_doc.exists else None
-
-                if current_role != role_to_set:
-                    user_ref.set({'role': role_to_set}, merge=True)
-            
+        except auth.InvalidIdTokenError:
+            response = redirect(url_for('views.login', lang_code=lang_code))
+            response.set_cookie('__session', '', expires=0)
+            return response
         except Exception as e:
             print(f"Error in login_required decorator: {e}")
-            # Clear bad cookie and redirect to login
             response = redirect(url_for('views.login', lang_code=lang_code))
             response.set_cookie('__session', '', expires=0)
             return response
@@ -54,10 +55,11 @@ def login_required(view):
 
 
 def admin_required(view):
-    """Decorator that checks if the user has the 'admin' role assigned in the g object."""
+    """Decorator that checks for 'admin' role. Must run AFTER login_required."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if getattr(g, 'user_role', 'user') != 'admin':
+        user_profile = getattr(g, 'user_profile', {})
+        if user_profile.get('role') != 'admin':
             lang_code = kwargs.get('lang_code', 'pt_BR')
             return redirect(url_for('views.home', lang_code=lang_code))
         return view(**kwargs)
@@ -79,36 +81,25 @@ def login(lang_code):
 
 @views.route('/session_login', methods=['POST'])
 def session_login(lang_code):
+    """Receives ID token and sets it as the __session cookie."""
     try:
         id_token = request.json['token']
-        decoded_token = auth.verify_id_token(id_token, check_revoked=True)
-        uid = decoded_token['uid']
-
-        if db:
-            user_ref = db.collection('users').document(uid)
-            # Ensure a user document exists and set last login
-            user_ref.set({
-                'email': decoded_token.get('email'),
-                'last_login_timestamp': datetime.utcnow()
-            }, merge=True)
-
         response = jsonify({"status": "success"})
-        # Use app config for cookie settings
-        secure_cookie = current_app.config.get('SESSION_COOKIE_SECURE', True)
-        response.set_cookie('__session', id_token, httponly=True, secure=secure_cookie, samesite='Lax')
+        is_prod = os.environ.get('GAE_ENV', '').startswith('standard')
+        response.set_cookie('__session', id_token, httponly=True, secure=is_prod, samesite='Lax')
         return response
+
     except Exception as e:
         print(f"Error during session login: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @views.route("/logout")
 def logout(lang_code):
-    # Redirect to home in the current language
     response = redirect(url_for('views.home', lang_code=lang_code))
     response.set_cookie('__session', '', expires=0)
     return response
 
-# --- Protected Admin Routes ---
+# --- Admin Dashboard & User Management ---
 
 @views.route("/admin_home")
 @login_required
@@ -124,41 +115,65 @@ def admin_home(lang_code):
                 users_list.append(user_data)
         except Exception as e:
             print(f"Error fetching users: {e}")
-            
-    return render_template("admin_home.html", email=g.user.get('email'), users=users_list)
+    return render_template("admin_home.html", users=users_list)
 
 @views.route("/create_user", methods=['POST'])
 @login_required
 @admin_required
 def create_user(lang_code):
-    if not db:
-        return redirect(url_for('views.admin_home', lang_code=lang_code))
-        
+    if not db: return redirect(url_for('views.admin_home', lang_code=lang_code))
     try:
         full_name = request.form['fullName']
         email = request.form['email']
         password = request.form['password']
-        raga_access = 'RAGA' in request.form.getlist('services')
+        status = request.form.get('status', 'active')
 
         new_user_auth = auth.create_user(email=email, password=password, display_name=full_name)
-
-        subscribed_services = ['RAGA'] if raga_access else []
         
-        # New users are always created with the 'user' role by default.
-        # The login_required decorator will promote them to admin on their first login
-        # if their email is in the ADMIN_USERS secret.
+        admin_emails_str = get_secret('ADMIN_USERS')
+        admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
+        new_user_role = 'admin' if email in admin_emails else 'user'
+
         user_data = {
             'uid': new_user_auth.uid,
             'email': email,
             'full_name': full_name,
-            'role': 'user', 
-            'status': 'active',
+            'role': new_user_role,
+            'status': status,
             'creation_date': datetime.utcnow(),
-            'subscribed_services': subscribed_services
         }
         db.collection('users').document(new_user_auth.uid).set(user_data)
-        
     except Exception as e:
         print(f"Error creating user: {e}")
-
     return redirect(url_for('views.admin_home', lang_code=lang_code))
+
+@views.route("/admin/update_user_fields/<uid>", methods=['POST'])
+@login_required
+@admin_required
+def update_user_fields(lang_code, uid):
+    if not db: return jsonify({"status": "error", "message": "Database not connected"}), 500
+    try:
+        data_to_update = {}
+        if 'status' in request.form:
+            data_to_update['status'] = request.form['status']
+        
+        if data_to_update:
+            db.collection('users').document(uid).update(data_to_update)
+        return redirect(url_for('views.admin_home', lang_code=lang_code))
+    except Exception as e:
+        print(f"Error updating user fields: {e}")
+        return redirect(url_for('views.admin_home', lang_code=lang_code))
+
+@views.route("/admin/update_user/<uid>", methods=['POST'])
+@login_required
+@admin_required
+def update_user(lang_code, uid):
+    if not db: return jsonify({"status": "error", "message": "Database not connected"}), 500
+    try:
+        full_name = request.form.get('fullName')
+        data_to_update = {'full_name': full_name}
+        db.collection('users').document(uid).update(data_to_update)
+        return redirect(url_for('views.admin_home', lang_code=lang_code))
+    except Exception as e:
+        print(f"Error updating user profile: {e}")
+        return redirect(url_for('views.admin_home', lang_code=lang_code))

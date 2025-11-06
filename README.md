@@ -1,469 +1,132 @@
-# Início da Saga, ou Épico, ou What Ever...
-# Dia 31 de outubro, 03h00 da manhã
-Depois de muito bater cabeça com o projeto e com as dicas da IA Gemini-2.5-flash, resolvi pedir um relatório a cada grande conquista no projeto. 
-Firebase é cheio de regras e detalhes que não são fáceis de serem seguidos por iniciantes.
-Esse relato deixou de ser um tutorial de como implementar um prjeto similar e passou a ser, no mínimo, um artigo. Um relato de várias dicas técnicas mas também frustrações com repetições intermináveis de revisão de código, para no final não chegar a uma solução.
-Para quem acompanhar essa documentação, no mínimo no final chegará a conclusão de que as IAs estão muito longe de tomar o seu emprego de desenvolvedor de Software. ;)
 
-# Projeto Base: Flask com Tailwind CSS
+# EdCat - Roteiro de Instalação no Firebase
 
-Este é um projeto inicial que utiliza Flask para o back-end e Tailwind CSS para o front-end. O objetivo é criar uma base sólida e bem documentada para futuros desenvolvimentos.
+Este guia descreve o processo para configurar e implantar a aplicação EdCat do zero em um novo projeto do Google Cloud e Firebase.
 
-## Roteiro de Criação do Projeto
+## Pré-requisitos
 
-Este documento serve como um guia passo a passo de como este projeto foi configurado desde o início.
-
-### 1. Configuração do Ambiente (`dev.nix`)
-
-O primeiro passo foi configurar o ambiente de desenvolvimento no arquivo `.idx/dev.nix` para instalar todas as ferramentas necessárias:
-
-```nix
-{ pkgs, ... }: {
-  packages = [
-    pkgs.python3
-    pkgs.uv
-    pkgs.nodejs_22
-    pkgs.gettext
-  ];
-}
-```
-
-### 2. Ambiente Virtual e Dependências
-
-Com o ambiente base pronto, criamos um ambiente virtual Python e instalamos as dependências do projeto.
-
-**Ambiente virtual:**
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-**Dependências Python (com `uv`):**
-```bash
-uv pip install flask
-```
-
-**Dependências Node.js (com `npm`):**
-```bash
-npm install tailwindcss @tailwindcss/cli
-```
-
-### 3. Estrutura do Projeto
-
-Adotamos o padrão **"Application Factory"** para organizar o código Flask, tornando-o mais escalável e organizado. A estrutura de diretórios ficou assim:
-
-```
-.
-├── .gitignore
-├── .idx/
-│   └── dev.nix
-├── README.md
-├── edcat_root/
-│   ├── __init__.py       # Fábrica que cria a aplicação Flask
-│   ├── main.py           # Ponto de entrada que executa a aplicação
-│   ├── views.py          # Módulo para as rotas (views)
-│   ├── pages/
-│   │   └── templates/
-│   │       └── index.html  # Templates HTML
-│   └── static/
-│       └── css/
-│           └── output.css  # CSS gerado pelo Tailwind
-├── requirements.txt      # Dependências Python
-└── tailwind.config.js    # Configuração do Tailwind CSS
-```
-
-
-### 4. Próximos Passos
-
-- [ ] Continuar o desenvolvimento das funcionalidades.
-- [ ] Configurar o deploy no Firebase App Hosting.
-- [ ] Detalhar a configuração do Tailwind.
-
-
-# Dia 01 de novembro, 03h40 da manhã
-
-### 5. Traduções:
-
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot .
-
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot --no-wrap .
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l en_US
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l pt_BR
-
-### Efetuar as traduções
-
-### Compilar as traduções
-pybabel compile -d edcat_root/translations
-
-export FLASK_APP=edcat_root/main.py && pybabel compile -d edcat_root/translations
-
-
-### O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
-
-Carregue o Web preview com Hard Restart e abra o External Website para conseguir ver as alterações em suas páginas.
-
-# Dia 01 de novembro, 03h43 da tarde
-
-# Projeto Base: Flask com Tailwind CSS
-
-Este é um projeto inicial que utiliza Flask para o back-end e Tailwind CSS para o front-end. O objetivo é criar uma base sólida e bem documentada para futuros desenvolvimentos.
-
-## Roteiro de Criação do Projeto
-
-Este documento serve como um guia passo a passo de como este projeto foi configurado desde o início.
-
-### 1. Configuração do Ambiente (`dev.nix`)
-
-O primeiro passo foi configurar o ambiente de desenvolvimento no arquivo `.idx/dev.nix` para instalar todas as ferramentas necessárias:
-
-```nix
-{ pkgs, ... }: {
-  packages = [
-    pkgs.python3
-    pkgs.uv
-    pkgs.nodejs_22
-    pkgs.gettext
-  ];
-}
-```
-
-### 2. Ambiente Virtual e Dependências
-
-Com o ambiente base pronto, criamos um ambiente virtual Python e instalamos as dependências do projeto.
-
-**Ambiente virtual:**
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-**Dependências Python (com `uv`):**
-```bash
-uv pip install flask
-```
-
-**Dependências Node.js (com `npm`):**
-```bash
-npm install tailwindcss @tailwindcss/cli
-```
-
-### 3. Estrutura do Projeto
-
-Adotamos o padrão **"Application Factory"** para organizar o código Flask, tornando-o mais escalável e organizado. A estrutura de diretórios ficou assim:
-
-```
-.
-├── .gitignore
-├── .idx/
-│   └── dev.nix
-├── README.md
-├── edcat_root/
-│   ├── __init__.py       # Fábrica que cria a aplicação Flask
-│   ├── main.py           # Ponto de entrada que executa a aplicação
-│   ├── views.py          # Módulo para as rotas (views)
-│   ├── pages/
-│   │   └── templates/
-│   │       └── index.html  # Templates HTML
-│   └── static/
-│       └── css/
-│           └── output.css  # CSS gerado pelo Tailwind
-├── requirements.txt      # Dependências Python
-└── tailwind.config.js    # Configuração do Tailwind CSS
-```
-
-
-### 4. Próximos Passos
-
-- [ ] Continuar o desenvolvimento das funcionalidades.
-- [ ] Configurar o deploy no Firebase App Hosting.
-- [ ] Detalhar a configuração do Tailwind.
-
-### 5. Traduções:
-
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot .
-
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot --no-wrap .
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l en_US
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l pt_BR
-
-### Efetuar as traduções
-
-### Compilar as traduções
-pybabel compile -d edcat_root/translations
-
-export FLASK_APP=edcat_root/main.py && pybabel compile -d edcat_root/translations
-
-
-### O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
-
-Carregue o Web preview com Hard Restart e abra o External Website para conseguir ver as alterações em suas páginas.
-
-# Dia 02 de novembro, 01h33 da manhã
-
-# Projeto Base: Flask com Tailwind CSS
-
-Este é um projeto inicial que utiliza Flask para o back-end e Tailwind CSS para o front-end. O objetivo é criar uma base sólida e bem documentada para futuros desenvolvimentos.
-
-## Roteiro de Criação do Projeto
-
-Este documento serve como um guia passo a passo de como este projeto foi configurado desde o início.
-
-### 1. Configuração do Ambiente (`dev.nix`)
-
-O primeiro passo foi configurar o ambiente de desenvolvimento no arquivo `.idx/dev.nix` para instalar todas as ferramentas necessárias:
-
-```nix
-{ pkgs, ... }: {
-  packages = [
-    pkgs.python3
-    pkgs.uv
-    pkgs.nodejs_22
-    pkgs.gettext
-  ];
-}
-```
-
-### 2. Ambiente Virtual e Dependências
-
-Com o ambiente base pronto, criamos um ambiente virtual Python e instalamos as dependências do projeto.
-
-**Ambiente virtual:**
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-**Dependências Python (com `uv`):**
-```bash
-uv pip install flask
-```
-
-**Dependências Node.js (com `npm`):**
-```bash
-npm install tailwindcss @tailwindcss/cli
-```
-
-### 3. Estrutura do Projeto
-
-Adotamos o padrão **"Application Factory"** para organizar o código Flask, tornando-o mais escalável e organizado. A estrutura de diretórios ficou assim:
-
-```
-.
-├── .gitignore
-├── .idx/
-│   └── dev.nix
-├── README.md
-├── edcat_root/
-│   ├── __init__.py       # Fábrica que cria a aplicação Flask
-│   ├── main.py           # Ponto de entrada que executa a aplicação
-│   ├── views.py          # Módulo para as rotas (views)
-│   ├── pages/
-│   │   └── templates/
-│   │       └── index.html  # Templates HTML
-│   └── static/
-│       └── css/
-│           └── output.css  # CSS gerado pelo Tailwind
-├── requirements.txt      # Dependências Python
-└── tailwind.config.js    # Configuração do Tailwind CSS
-```
-
-### 4. A Saga do Deploy: Do Local à Nuvem com Cloud Run
-
-Nosso objetivo era fazer o deploy da aplicação, mas o caminho se mostrou mais complexo do que o esperado. Aqui está a história de como superamos os desafios.
-
-#### O Desafio do Tailwind 4 e o Docker
-
-A solução foi adotar uma abordagem de **build multi-estágio (multi-stage build)** no nosso `Dockerfile`:
-- **Estágio 1 (Builder):** Criamos um contêiner temporário com Node.js apenas para instalar as dependências de front-end e compilar o CSS.
-- **Estágio 2 (Final):** Criamos um contêiner Python limpo e enxuto. A única coisa que trouxemos do primeiro estágio foi o arquivo `style.css` já pronto. O resultado foi uma imagem Docker leve, segura e otimizada para produção.
-
-#### O Mistério do "Service Unavailable" e o Mísero Ponto
-
-Mesmo com o build bem-sucedido, o Cloud Run nos presenteava com um frustrante "Service Unavailable". A aplicação estava sendo construída, mas não iniciava na nuvem. Após uma investigação minuciosa, o culpado foi encontrado em `main.py`: um único ponto.
-
-A linha `from .views import views` (uma importação relativa) funcionava perfeitamente no ambiente de desenvolvimento local, mas quebrava o Gunicorn (o servidor usado em produção). Ao alterá-la para uma importação absoluta (`from views import views`), a aplicação finalmente pôde ser iniciada, resolvendo o mistério e colocando nosso site no ar. Uma lição valiosa: o que funciona em desenvolvimento nem sempre funciona em produção.
-
-### 5. Traduções
-
-```bash
-pybabel extract -F babel.cfg -o edcat_root/translations/messages.pot .
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l en_US
-
-pybabel init -i edcat_root/translations/messages.pot -d edcat_root/translations -l pt_BR
-# Efetuar as traduções nos arquivos .po
-pybabel compile -d edcat_root/translations
-```
-
-### 6. Notas de Desenvolvimento
-
-> O web preview não funciona. Por alguma razão de mal relacionamento entre os garçons e os cozinheiros malvados, você pede lagosta ao ponto, mas eles te entregam sardinha crua.
-
-Carregue o Web preview com Hard Restart e abra o External Website para conseguir ver as alterações em suas páginas.
-
-# Dia 02 de novembro, 01h33 da tarde
-
-# EdCat - Seu Editor de Catálogos Online
-
-## 1. Visão Geral
-
-EdCat é uma aplicação web construída com Flask, projetada para ser um editor de catálogos de produtos simples e eficiente. A aplicação utiliza Tailwind CSS para a estilização e Flask-Babel para internacionalização (i18n), com traduções para Português do Brasil (pt_BR) e Inglês (en_US).
-
-Este `README.md` serve como um diário de bordo e um guia de desenvolvimento, documentando os desafios encontrados e as soluções implementadas.
-
-## 2. Estrutura do Projeto
-
-```
-.
-├── .idx/              # Configuração do ambiente de desenvolvimento IDX
-├── devserver.sh       # Script para iniciar o servidor de desenvolvimento local
-├── edcat_root/        # Raiz da aplicação Flask
-│   ├── main.py        # Ponto de entrada da aplicação
-│   ├── ...
-├── Dockerfile         # Define o contêiner de produção para o Firebase
-├── firebase.json      # Configuração do Firebase Hosting
-└── ...
-```
-
-## 3. Descobertas e Soluções (O Estado Anterior)
-
-Esta seção representa o conhecimento acumulado antes das entradas do diário de bordo.
-
-#### O Garçom, o Cozinheiro e as Traduções (Mistério Resolvido)
-
-O problema de o site aparecer em inglês no ambiente de produção foi resolvido com duas ações:
-
-1.  **No Código (`main.py`):** Garantimos um idioma padrão explícito com a linha `return request.accept_languages.best_match(['pt_BR', 'en_US']) or 'pt_BR'`.
-2.  **Na Configuração (`firebase.json`):** Adicionamos o cabeçalho `Vary: Accept-Language` para garantir que o cache do Firebase sirva a versão correta da página para cada idioma.
-
-#### O Mistério do Web Preview e o Console Silencioso
-
-Após resolver a questão em produção, um novo mistério surgiu: as traduções funcionavam perfeitamente no URL externo, mas não na aba "Web Preview" do IDE. A investigação nos levou a uma conclusão surpreendente.
-
-**A Descoberta:** Após verificar que o código estava correto, ativamos as "Web Dev Tools" embutidas e encontramos... um console completamente silencioso. Nenhum erro, nenhuma pista. Como diria Spock: "Fascinante."
-
-**Conclusão:** O Web Preview, para tarefas que envolvem cabeçalhos e comportamento de rede complexo, provou ser um ambiente não confiável. Uma lição para não perder tempo depurando ferramentas que se recusam a ser depuradas e confiar nos testes de ponta a ponta.
+- **Conta do Google Cloud:** Com um projeto criado e faturamento ativado.
+- **Ferramentas de Linha de Comando:**
+  - `gcloud` (Google Cloud SDK)
+  - `firebase` (Firebase CLI)
+- **Git:** Para clonar o repositório.
 
 ---
 
-## 4. Crônicas do Deploy (Diário de Bordo)
+## Passo 1: Configuração do Projeto Google Cloud & Firebase
 
-### **Entrada: 26/07/2024 - A Crise de Identidade e o Deploy Fantasma**
+1.  **Crie um Projeto:**
+    - Acesse o [Console do Google Cloud](https://console.cloud.google.com/) e crie um novo projeto (ex: `meu-novo-edcat`). Anote o **Project ID**.
 
-**15:00:** Acreditávamos que a última alteração seria a final. Engano. O plano era simples: fazer o deploy. Mas o comando `firebase deploy` falhou com um erro que confirmou uma suspeita antiga: `Failed to fetch Firebase Project... not yet authenticated`.
+2.  **Ative as APIs Essenciais:**
+    - No console do seu projeto, ative as seguintes APIs:
+      - **Cloud Build API** (para construir o contêiner)
+      - **Cloud Run Admin API** (para implantar o serviço)
+      - **Secret Manager API** (para gerenciar segredos)
+      - **Identity and Access Management (IAM) API**
 
-**15:30:** O ambiente tinha uma crise de identidade. Após uma breve confusão entre `gcloud auth login` e `firebase login`, usamos o comando correto (`firebase login`) e restabelecemos a autenticação. Durante o processo, notamos uma atualização disponível para o `firebase-tools` (14.22.0 → 14.23.0) e registramos a necessidade de manutenção.
+3.  **Vincule o Firebase ao Projeto:**
+    - Acesse o [Console do Firebase](https://console.firebase.google.com/).
+    - Clique em "Adicionar projeto" e selecione seu projeto Google Cloud existente.
 
-**16:00:** Com a autenticação resolvida, executamos `firebase deploy` novamente. O comando terminou em segundos. Rápido demais. O log foi a prova: `i deploying hosting`. Apenas o "garçom" (Firebase Hosting) foi atualizado. O "cozinheiro" (nosso contêiner no Cloud Run com as últimas correções) não foi reconstruído.
-
-**16:15:** **Nova Hipótese:** O comando `firebase deploy` padrão não é inteligente o suficiente para detectar nosso `Dockerfile` personalizado e acionar um novo build para o Cloud Run. Ele apenas executa a tarefa mais óbvia de implantar os arquivos estáticos.
-
-**16:30:** **Plano de Ação Corrente:** Vamos mudar de tática. Para diagnosticar se o problema é de permissão ou limitação da ferramenta, vamos forçar o deploy do contêiner manualmente, usando o comando que você mesmo sugeriu no início da nossa jornada. O próximo comando a ser executado é:
-
-```bash
-gcloud run deploy edcat-container --source . --region us-east4
-```
-
-A saga continua.
-
-# Dia 02 de novembro, 02h35 da tarde
-
-**14:35:** A guerra contra o cache do Firebase Hosting estava em um impasse. Mesmo forçando o rebuild do contêiner e implementando cabeçalhos agressivos de `Cache-Control`, a versão em inglês continuava sendo servida teimosamente. Estávamos em um beco sem saída.
-
-**14:45: A Epifania.** Em um momento de clareza, a solução definitiva surgiu, não de uma documentação complexa, mas da experiência prática com o framework Django: **abandonar a negociação de idioma via cabeçalhos e adotar uma abordagem explícita na própria URL.**
-
-**A Nova Estratégia:** Em vez de depender da "mágica" do `Accept-Language`, nós reestruturaríamos o site para que o idioma fosse parte do caminho da URL (ex: `meusite.com/pt_BR/home`). Para um sistema de cache, `meusite.com/pt_BR/` e `meusite.com/en_US/` são duas páginas completamente diferentes, eliminando toda a ambiguidade e tornando o cache um aliado, não um inimigo.
-
-**15:00 - 16:30: A Cirurgia.** Uma grande refatoração foi iniciada:
-1.  **`main.py`:** Foi completamente reescrito para entender um prefixo de idioma (`/<lang_code>`) em todas as rotas. Uma nova rota na raiz (`/`) foi criada para redirecionar o usuário para a versão de seu idioma preferido.
-2.  **`views.py`:** A rota `home` foi ajustada para `/home` e ensinada a aceitar o argumento `lang_code` passado pela nova lógica do `main.py`. A rota antiga de seleção de idioma foi removida.
-3.  **`index.html`:** Os links do seletor de idiomas foram atualizados para usar o novo sistema, apontando para `url_for('views.home', lang_code='...')`.
-
-**16:35: A Vitória Local.** A insistência em testar localmente provou ser a decisão mais acertada. Uma série de erros em cascata (`TypeError` e `BuildError`) foram identificados e corrigidos, alinhando todas as peças da nova arquitetura. O comando `devserver.sh` finalmente executou sem falhas. A aplicação funcionou perfeitamente, inclusive no antes amaldiçoado Web Preview.
-
-**16:40: O Ato Final.** Com a validação local e a confiança restaurada, estamos prontos para o deploy definitivo. O próximo passo é enviar o contêiner, agora comprovadamente funcional, para a produção.
-
----
-### **Entrada: 27/07/2024 - A Missão Pela Segurança e a Revelação do `uv`**
-
-**05:15:** Com a aplicação finalmente estável e a batalha contra o cache vencida, uma nova missão se apresentou, ditada pelas boas práticas de engenharia: **a segurança.** Nosso código, apesar de funcional, guardava segredos que não deveriam estar ali. A `SECRET_KEY` do Flask e as credenciais do Firebase estavam expostas, um risco inaceitável para um projeto destinado à produção.
-
-**05:45: A Estratégia - Centralizando Segredos.** O plano foi traçado: migrar todas as informações sensíveis para o **Google Secret Manager**. Minha parceira IA assumiu a tarefa de cirurgia no código:
-1.  O arquivo `requirements.txt` foi atualizado para incluir `google-cloud-secret-manager` e `firebase-admin`.
-2.  O coração da aplicação, `edcat_root/main.py`, foi modificado para buscar, durante a inicialização, a `SECRET_KEY` e as credenciais do Firebase diretamente do Secret Manager. Um fallback foi mantido para o ambiente de desenvolvimento local, uma rede de segurança para não quebrar o fluxo de trabalho.
-
-**06:15: A Grande Sacada - Dominando as Dependências com `uv`.** Em meio à implementação de segurança, uma dúvida fundamental surgiu: "Como podemos garantir que estamos começando com as versões mais recentes e seguras de nossas dependências?"
-
-A resposta foi mais do que um simples comando; foi uma revelação sobre gerenciamento de projetos modernos. A IA nos apresentou a uma prática exemplar usando a ferramenta `uv`, que já havíamos adotado:
-
-*   **O Manifesto (`requirements.in`):** Em vez de gerenciar manualmente o caótico `requirements.txt`, criamos um arquivo `requirements.in`. Nele, declaramos apenas nossas dependências diretas (`flask`, `firebase-admin`, etc.).
-*   **O Compilador (`uv pip compile`):** Com um único comando (`uv pip compile requirements.in -o requirements.txt --upgrade`), o `uv` age como um compilador inteligente. Ele consulta os repositórios, resolve o complexo grafo de sub-dependências e gera um arquivo `requirements.txt` "travado", com as versões mais recentes e compatíveis de **tudo**.
-*   **A Sincronização (`uv pip sync`):** Para instalar, basta sincronizar o ambiente com o arquivo `requirements.txt` gerado.
-
-**06:45: Conclusão da Entrada.** Esta não foi apenas uma tarefa de refatoração. Foi um salto de maturidade para o projeto. Aprendemos a tratar segredos com o respeito que merecem e, talvez mais importante, descobrimos um fluxo de trabalho robusto para manter nossa fundação de software sempre atualizada e segura. Um verdadeiro apelo aos desenvolvedores: comecem seus projetos de forma segura, com as versões mais recentes de suas dependências. A "preguiça" inicial de configurar um `requirements.in` economiza incontáveis horas de depuração e dores de cabeça no futuro.
-
-A saga avança, agora com um alicerce mais forte.
-
-
-## A Saga da Autenticação: A Fortaleza Digital
-
-**Data Planetária: 04 de novembro de 2025**
-
-**03:00:** Com a base do projeto estabilizada, iniciamos a missão crítica de erguer as muralhas da nossa fortaleza digital: o sistema de autenticação. A ordem do Captain era clara: segurança máxima, sem comprometer a elegância da arquitetura.
-
-**A Estratégia:** Utilizamos o poder combinado do Firebase Authentication para o front-end e um robusto sistema de sessão no Flask para o back-end. A joia da coroa da operação foi a integração com o Google Secret Manager, garantindo que nenhuma chave ou segredo fosse deixado para trás, exposto no campo de batalha do código.
-
-**Os Desafios:** Nenhuma grande saga vem sem seus testes. Enfrentamos e superamos uma série de anomalias:
-1.  **O Fantasma do `lang_code`:** Um `TypeError` que nos lembrou da importância de alinhar as assinaturas de rota com a arquitetura de URL multilíngue.
-2.  **A Tempestade Tailwind:** Um conflito de versões do Tailwind CSS que ameaçou a estabilidade do nosso front-end, resolvido ao consolidar o processo de compilação.
-3.  **O `ImportError` Silencioso:** A anomalia final, um erro de importação que se escondia nas sombras, foi neutralizada garantindo que todas as novas dependências fossem não apenas declaradas, mas devidamente instaladas no ambiente virtual. Cada desafio foi uma lição, forjando nossa resiliência.
-
-**04:30: Missão Cumprida.** O sistema de login está operacional. Administradores podem se autenticar, receber uma sessão segura e acessar a recém-criada e protegida `/admin_home`. O logout funciona como um teletransporte limpo, retornando o usuário à página inicial. A fortaleza está segura, as sentinelas estão em seus postos e, o mais importante, nenhuma mosca comprometeu a integridade da operação.
-
-Com a segurança garantida, o caminho está livre para construir as ferramentas de administração dentro de nossos novos muros.
+4.  **Configure os Serviços do Firebase:**
+    - **Authentication:**
+      - Vá para a seção "Authentication" -> "Sign-in method".
+      - Ative o provedor "E-mail/senha".
+    - **Firestore:**
+      - Vá para a seção "Firestore Database".
+      - Crie um banco de dados em modo de **Produção**.
 
 ---
 
-## A Saga da Autenticação: A Batalha Final Contra a Amnésia
+## Passo 2: Clonar e Configurar o Repositório Local
 
-**Data Estelar: 04.11.2025 - Adendo Crítico**
+1.  **Clone o projeto:**
+    ```bash
+    git clone <URL_DO_SEU_REPOSITÓRIO>
+    cd <NOME_DO_REPOSITÓRIO>
+    ```
 
-**O Problema:** Após a implementação bem-sucedida da autenticação, um inimigo traiçoeiro emergiu: o servidor sofria de amnésia instantânea. Um usuário fazia o login, o servidor criava a sessão, mas, na requisição seguinte, o servidor não se lembrava de ninguém. O usuário era imediatamente deslogado. Tentativas lógicas de corrigir o problema, como forçar cookies seguros e usar o `ProxyFix`, falharam misteriosamente.
+2.  **Inicialize o Firebase no projeto local:**
+    - Faça login no Firebase:
+      ```bash
+      firebase login
+      ```
+    - Configure o projeto para usar o seu Project ID:
+      ```bash
+      firebase use SEU_PROJECT_ID
+      ```
 
-**A Revelação:** A causa raiz não estava em nosso código, mas em uma regra fundamental e pouco documentada do Firebase Hosting. Para otimizar sua CDN, o Firebase age como um segurança rigoroso na entrada do nosso serviço:
-
-> **Ele descarta TODOS os cookies de uma requisição, exceto um que tenha o nome exato `__session`.**
-
-Nossas tentativas falharam porque estávamos usando o cookie padrão do Flask, chamado `session`, que era sistematicamente jogado no lixo pelo Firebase antes mesmo de chegar ao nosso aplicativo Cloud Run.
-
-**A Solução Definitiva: A Lei do `__session`**
-
-Para vencer, tivemos que nos renderar à lei do Firebase e mudar nossa arquitetura:
-
-1.  **Abandonar a Sessão Flask:** O sistema `session` do Flask se tornou inútil. Nós o removemos completamente do fluxo de autenticação.
-2.  **Adotar uma Abordagem Stateless:** Em vez de o servidor *lembrar* do usuário (stateful), nós forçamos o navegador a *provar* sua identidade a cada requisição (stateless).
-3.  **Implementação:**
-    *   **Login (`session_login`):** Após o Firebase Authentication validar o usuário no cliente, o token de ID é enviado ao servidor. O servidor então **não cria uma sessão**, mas sim retorna uma resposta que instrui o navegador a criar um cookie chamado **`__session`**, cujo valor é o próprio token de ID.
-    *   **Verificação (`login_required`):** O decorador que protege as páginas agora verifica, a cada chamada, a presença do cookie `__session`. Se ele existe, seu valor (o token) é extraído e verificado novamente com o `firebase_admin.auth.verify_id_token()`. Somente se o token for válido, o acesso é concedido.
-
-**Lição Aprendida:** Frameworks operam dentro das leis de seus ambientes de hospedagem. Antes de depurar o código, sempre verifique as regras de tráfego, cache e, especialmente, de cookies do seu provedor de nuvem. Esta batalha foi vencida não com lógica de programação, mas com inteligência de campo.
+3.  **Faça login no gcloud:**
+    - Autentique a CLI `gcloud` para interagir com os serviços do Google Cloud.
+      ```bash
+      gcloud auth login
+      gcloud auth application-default login
+      ```
 
 ---
 
-## A Saga da Internacionalização: A Batalha Contra a Monoglotia
+## Passo 3: Gerenciamento de Segredos (Secret Manager)
 
-**Data Estelar: 05.11.2025 - Diário do Copiloto**
+A aplicação requer que os seguintes segredos sejam criados no Google Secret Manager. Substitua `SEU_PROJECT_ID` nos comandos.
 
-**O Problema:** Com a fortaleza da autenticação erguida, descobrimos uma falha de comunicação fundamental. Nosso sistema, embora seguro, era um monogolota teimoso. A página de login, nosso portão de entrada, recusava-se a saudar os visitantes em sua língua nativa, exibindo apenas o inglês padrão. A missão era clara: ensinar nosso sistema a falar a língua dos seus usuários.
+1.  **`SECRET_KEY` do Flask:**
+    - Gere uma chave segura (ex: `openssl rand -hex 32`).
+    - Crie o segredo:
+      ```bash
+      echo "SUA_CHAVE_SEGURA_AQUI" | gcloud secrets create SECRET_KEY --project=SEU_PROJECT_ID --data-file=-
+      ```
 
-**A Investigação:** A jornada começou nos arquivos de configuração. Uma análise do `main.py` mostrou que o Babel estava configurado corretamente. O diretório de traduções existia, e os arquivos `.mo` compilados estavam presentes – um sinal de vida, mas enganoso. A anomalia estava mais profunda. A inspeção do arquivo-fonte da tradução, `messages.po`, revelou a verdade: ele estava cheio de traduções vazias (`msgstr ""`) e marcações "fuzzy", como um livro com páginas em branco que o compilador, em sua lógica literal, simplesmente ignorava.
+2.  **`ADMIN_USERS`:**
+    - Lista de e-mails de administradores, separados por vírgula.
+      ```bash
+      echo "admin1@email.com,admin2@email.com" | gcloud secrets create ADMIN_USERS --project=SEU_PROJECT_ID --data-file=-
+      ```
 
-**Um Novo Obstáculo:** Após preencher manualmente as traduções corretas, a vitória parecia próxima. No entanto, ao tentar compilar, o universo nos lançou uma nova curva: `pybabel: command not found`. Nosso tradutor universal, a ferramenta essencial para a missão, não existia em nosso ambiente. A falha não estava no código da aplicação, mas em sua própria fundação.
+3.  **`firebase-client-config`:**
+    - No Console do Firebase, vá para "Configurações do Projeto" (ícone de engrenagem).
+    - Em "Seus apps", crie um novo **App da Web**.
+    - Copie o objeto de configuração `firebaseConfig` (formato JSON).
+    - Crie o segredo (o JSON deve estar em uma única linha):
+      ```bash
+      echo '{"apiKey": "...", "authDomain": "...", ...}' | gcloud secrets create firebase-client-config --project=SEU_PROJECT_ID --data-file=-
+      ```
 
-**A Solução Definitiva:** O erro nos guiou até a raiz do problema. O arquivo `dev.nix`, o DNA do nosso ambiente de desenvolvimento, não continha o pacote `babel`. Com uma única linha de código adicionada, o ambiente se regenerou, e a ferramenta `pybabel` materializou-se no terminal.
+4.  **`firebase-server-config` (Conta de Serviço):**
+    - No Console do Firebase, vá para "Configurações do Projeto" -> "Contas de serviço".
+    - Clique em "Gerar nova chave privada". Isso fará o download de um arquivo JSON.
+    - Crie o segredo a partir do arquivo baixado:
+      ```bash
+      gcloud secrets create firebase-server-config --project=SEU_PROJECT_ID --data-file="/caminho/para/o/arquivo-baixado.json"
+      ```
 
-**Missão Cumprida:** Com o ambiente corrigido e as traduções precisas, o comando `pybabel compile -d edcat_root/translations` foi executado com sucesso. Após uma rápida reinicialização do servidor, a página de login nos saudou em português perfeito. A fortaleza não era mais uma torre de Babel isolada, mas um centro de comunicação multilíngue. A barreira do idioma foi quebrada. A missão foi um sucesso.
+---
+
+## Passo 4: Deploy em Produção
+
+1.  **Atualize o `service.yaml`:**
+    - Abra o arquivo `service.yaml`.
+    - No campo `spec.template.spec.containers[0].env`, altere o `value` de `GOOGLE_CLOUD_PROJECT` para o seu **Project ID**.
+
+2.  **Construa e Envie a Imagem do Contêiner:**
+    - Este comando usa o `Dockerfile` para construir a imagem e a envia para o Google Container Registry.
+      ```bash
+      gcloud builds submit --tag gcr.io/SEU_PROJECT_ID/edcat-container
+      ```
+
+3.  **Implante o Serviço no Cloud Run:**
+    - Este comando usa o `service.yaml` para configurar e implantar o contêiner no Cloud Run.
+      ```bash
+      gcloud run services replace service.yaml --region us-east4
+      ```
+
+4.  **Configure o Firebase Hosting (`firebase.json`):**
+    - Certifique-se de que o `firebase.json` está configurado para redirecionar o tráfego para o seu serviço do Cloud Run. O `serviceId` deve ser o nome definido em `service.yaml` (`edcat-container`).
+
+5.  **Implante no Firebase Hosting:**
+    - Finalmente, implante as regras de hospedagem.
+      ```bash
+      firebase deploy --only hosting
+      ```
+
+Seu aplicativo agora está no ar, com o front-end servido pelo Firebase Hosting e o back-end executando de forma segura no Cloud Run.

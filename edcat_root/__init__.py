@@ -17,10 +17,7 @@ def get_secret(secret_id, version_id="latest"):
     """Fetches a secret from Google Cloud Secret Manager."""
     project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
     if not project_id:
-        # Fallback for local development or misconfigured environments
         print("Warning: GOOGLE_CLOUD_PROJECT environment variable not set.")
-        # Attempt to find a default project or use a hardcoded one if necessary
-        # For this case, let's assume it might be set elsewhere or we can't proceed.
         return None 
 
     client = secretmanager.SecretManagerServiceClient()
@@ -42,8 +39,6 @@ def create_app():
     app = Flask(__name__, template_folder='pages/templates', static_folder='static')
 
     # --- CRITICAL: PROXY FIX ---
-    # Ensures that Flask trusts the headers from the proxy (e.g., Cloud Run)
-    # This is vital for secure cookies (HTTPS) and correct URL generation.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # --- Initialize Firebase Admin SDK ---
@@ -70,10 +65,14 @@ def create_app():
 
     # --- App Configuration ---
     app.config['SECRET_KEY'] = get_secret("website-secrets") or 'a_fallback_dev_secret_key'
-    app.config['SESSION_COOKIE_SECURE'] = True
+    
+    # --- THE LOGIN FIX: In a development environment (HTTP), this MUST be False. ---
+    # In production (HTTPS), this should be True for security.
+    is_prod = os.environ.get('GAE_ENV', '').startswith('standard')
+    app.config['SESSION_COOKIE_SECURE'] = is_prod
+    
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    # THE CRUCIAL FIX: Firebase Hosting only allows the '__session' cookie.
     app.config['SESSION_COOKIE_NAME'] = '__session'
     
     # --- Language and Translation Config ---
@@ -83,7 +82,6 @@ def create_app():
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(basedir, 'translations')
 
     def get_locale():
-        # Get language from URL, fallback to accept-languages header
         if g.get('lang_code') and g.lang_code in app.config['LANGUAGES']:
             return g.lang_code
         return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
@@ -92,27 +90,22 @@ def create_app():
 
     # --- Register Blueprints and Routes ---
     with app.app_context():
-        from . import views # Import views
+        from . import views
 
-        # Set language code for every request
         @app.before_request
         def set_lang_code():
             g.lang_code = request.view_args.get('lang_code') if request.view_args else None
             if g.lang_code not in app.config['LANGUAGES']:
-                g.lang_code = None # Fallback
+                g.lang_code = None
 
-        # Redirect root URL to the best-matched language
         @app.route('/')
         def root_redirect():
             lang_code = request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or app.config['BABEL_DEFAULT_LOCALE']
             return redirect(url_for('views.home', lang_code=lang_code))
 
-        # Register the blueprint with a language code prefix
         app.register_blueprint(views.views, url_prefix='/<lang_code>')
         
-        # Inject context processors
         from .util import inject_context_processors
         inject_context_processors(app)
-
 
     return app

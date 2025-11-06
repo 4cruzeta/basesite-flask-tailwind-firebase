@@ -44,10 +44,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
-        // This firebaseConfig is now securely passed from the backend
         const firebaseConfig = {{ firebase_config | tojson }};
-
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
         const auth = firebase.auth();
@@ -57,20 +54,16 @@
         const errorField = document.getElementById('login-error');
 
         loginButton.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent form submission
+            e.preventDefault();
             const email = emailField.value;
             const password = passwordField.value;
             
-            errorField.textContent = ''; // Clear previous errors
+            errorField.textContent = '';
 
             auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Signed in successfully, get the ID token
-                    return userCredential.user.getIdToken();
-                })
-                .then((idToken) => {
-                    // Send the ID token to our backend to create a session
-                    const langCode = "{{ g.lang_code or 'pt_BR' }}"; // Get lang code for URL
+                .then(userCredential => userCredential.user.getIdToken())
+                .then(idToken => {
+                    const langCode = "{{ g.lang_code or 'pt_BR' }}";
                     return fetch(`/${langCode}/session_login`, {
                         method: 'POST',
                         headers: {
@@ -81,31 +74,22 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        // If response is not ok, parse the error message from backend
-                        return response.json().then(errorInfo => {
-                            throw new Error(errorInfo.message || 'Backend verification failed.');
-                        });
+                        throw new Error('Failed to set session cookie.');
                     }
                     return response.json();
                 })
                 .then(data => {
                     if (data.status === 'success') {
-                        // On successful session creation, redirect to the admin page
+                        // Simple, hardcoded redirect as per the original, correct logic.
                         const langCode = "{{ g.lang_code or 'pt_BR' }}";
                         window.location.href = `/${langCode}/admin_home`;
                     } else {
-                        // This case should be caught by the !response.ok check, but as a fallback:
-                        throw new Error(data.message || 'Backend returned an error.');
+                        throw new Error(data.message || 'Backend error during login.');
                     }
                 })
                 .catch((error) => {
                     console.error("Login Error:", error);
-                    // Display a user-friendly error message
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                        errorField.textContent = '{{ _("Invalid credentials. Please try again.") }}';
-                    } else {
-                        errorField.textContent = error.message || '{{ _("An unexpected error occurred.") }}';
-                    }
+                    errorField.textContent = '{{ _("Invalid credentials or login error.") }}';
                 });
         });
     </script>
