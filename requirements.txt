@@ -38,7 +38,7 @@ google-api-core==2.28.1
     #   google-cloud-firestore
     #   google-cloud-secret-manager
     #   google-cloud-storage
-google-auth==2.42.1
+google-auth==2.43.0
     # via
     #   google-api-core
     #   google-cloud-core
@@ -55,7 +55,7 @@ google-cloud-firestore==2.21.0
     #   firebase-admin
 google-cloud-secret-manager==2.25.0
     # via -r requirements.in
-google-cloud-storage==3.4.1
+google-cloud-storage==3.5.0
     # via firebase-admin
 google-crc32c==1.7.1
     # via
@@ -137,6 +137,8 @@ pycparser==2.23
     # via cffi
 pyjwt==2.10.1
     # via firebase-admin
+python-dotenv==1.2.1
+    # via -r requirements.in
 pytz==2025.2
     # via flask-babel
 requests==2.32.5

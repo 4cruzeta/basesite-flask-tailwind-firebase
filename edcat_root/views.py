@@ -61,7 +61,7 @@ def admin_required(view):
         user_profile = getattr(g, 'user_profile', {})
         if user_profile.get('role') != 'admin':
             lang_code = kwargs.get('lang_code', 'pt_BR')
-            return redirect(url_for('views.home', lang_code=lang_code))
+            return redirect(url_for('views.user_home', lang_code=lang_code))
         return view(**kwargs)
     return wrapped_view
 
@@ -85,8 +85,25 @@ def session_login(lang_code):
     try:
         id_token = request.json['token']
         response = jsonify({"status": "success"})
-        is_prod = os.environ.get('GAE_ENV', '').startswith('standard')
-        response.set_cookie('__session', id_token, httponly=True, secure=is_prod, samesite='Lax')
+
+        # --- CRITICAL WARNING ---
+        # This configuration is the peace treaty from the "Battle Against Amnesia"
+        # documented in EPIC.md. It is essential for login to work inside the
+        # IDX Web Preview, which operates within an iframe.
+        #
+        # - secure=True: Required by browsers for samesite='None'.
+        # - samesite='None': Allows the cookie to be sent in a cross-site context.
+        #
+        # DO NOT CHANGE these values. Modifying them to 'Lax' or removing 
+        # 'secure=True' will break the Web Preview login.
+        # --- END CRITICAL WARNING ---
+        response.set_cookie(
+            '__session', 
+            id_token, 
+            httponly=True, 
+            secure=True, 
+            samesite='None'
+        )
         return response
 
     except Exception as e:
@@ -98,6 +115,24 @@ def logout(lang_code):
     response = redirect(url_for('views.home', lang_code=lang_code))
     response.set_cookie('__session', '', expires=0)
     return response
+
+# --- Role-Based Dashboards ---
+
+@views.route("/dashboard")
+@login_required
+def dashboard(lang_code):
+    """Redirects user to the appropriate dashboard based on their role."""
+    user_profile = getattr(g, 'user_profile', {})
+    if user_profile.get('role') == 'admin':
+        return redirect(url_for('views.admin_home', lang_code=lang_code))
+    else:
+        return redirect(url_for('views.user_home', lang_code=lang_code))
+
+@views.route("/user_home")
+@login_required
+def user_home(lang_code):
+    return render_template("user_home.html")
+
 
 # --- Admin Dashboard & User Management ---
 
