@@ -1,0 +1,6 @@
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--no-cache', '-t', 'gcr.io/edcat-site/edcat-container', '.']
+images:
+- 'gcr.io/edcat-site/edcat-container'

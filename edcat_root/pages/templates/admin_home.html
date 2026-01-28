@@ -70,7 +70,7 @@
                             </div>
                             <div class="flex items-center space-x-4">
                                 <!-- Quick Edit Form for Role and Status -->
-                                <form action="{{ url_for('views.update_user_fields', lang_code=g.lang_code, uid=user.uid) }}" method="POST" class="flex items-center space-x-4">
+                                <form action="{{ url_for('views.update_user', lang_code=g.lang_code, uid=user.uid) }}" method="POST" class="flex items-center space-x-4">
                                     <div>
                                         <label for="role-{{ user.uid }}" class="sr-only">{{ _('Role') }}</label>
                                         <select name="role" id="role-{{ user.uid }}" class="block w-full text-sm border-gray-200 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">

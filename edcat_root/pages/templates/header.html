@@ -1,9 +1,52 @@
 <!-- edcat_root/pages/templates/header.html -->
 <div class="flex justify-between items-center mb-4">
-    <h2 class="text-3xl font-extrabold leading-tight text-gray-900">{{ _('EDCAT') }}</h2>
-    <div class="text-sm font-medium">
-        <a href="{{ change_lang_url('en_US') }}" class="text-gray-600 hover:text-indigo-500 px-2">English</a> |
-        <a href="{{ change_lang_url('pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2">Português</a> |
-        <a href="{{ url_for('views.login', lang_code=g.lang_code or 'pt_BR') }}" class="text-gray-600 hover:text-indigo-500 px-2 font-bold">{{ _('Login') }}</a>
-    </div>
+    <!-- Home link on EDCAT title -->
+    <a href="{{ url_for('views.home', lang_code=g.lang_code or 'pt_BR') }}">
+        <h2 class="text-3xl font-extrabold leading-tight text-gray-900 hover:text-indigo-600 transition-colors">{{ _('EDCAT') }}</h2>
+    </a>
+
+    <nav class="flex items-center space-x-4 text-sm font-medium">
+        <!-- Home link in the menu -->
+        <a href="{{ url_for('views.home', lang_code=g.lang_code or 'pt_BR') }}" class="text-gray-600 hover:text-indigo-500">{{ _('Home') }}</a>
+        
+        <!-- Login Link -->
+        <a href="{{ url_for('views.login', lang_code=g.lang_code or 'pt_BR') }}" class="text-gray-600 hover:text-indigo-500 font-bold">{{ _('Login') }}</a>
+
+        <!-- Language selector dropdown -->
+        <div class="relative">
+            <button id="lang-dropdown-button" class="text-gray-600 hover:text-indigo-500 inline-flex items-center">
+                <span>{{ _('Language') }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <div id="lang-dropdown-menu" class="hidden absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-10 w-32">
+                <a href="{{ change_lang_url('en_US') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-500 hover:text-white rounded-md">English</a>
+                <a href="{{ change_lang_url('pt_BR') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-500 hover:text-white rounded-md">Português</a>
+            </div>
+        </div>
+    </nav>
 </div>
+
+<script>
+    // Wait for the DOM to be fully loaded before running the script.
+    document.addEventListener('DOMContentLoaded', function() {
+        const langButton = document.getElementById('lang-dropdown-button');
+        const langMenu = document.getElementById('lang-dropdown-menu');
+
+        if (langButton && langMenu) {
+            langButton.addEventListener('click', function(event) {
+                // Stop the click from immediately closing the menu via the window listener.
+                event.stopPropagation();
+                langMenu.classList.toggle('hidden');
+            });
+
+            // Add a global click listener to close the dropdown when clicking elsewhere.
+            window.addEventListener('click', function() {
+                if (!langMenu.classList.contains('hidden')) {
+                    langMenu.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>

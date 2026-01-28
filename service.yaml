@@ -1,28 +1,27 @@
-# service.yaml
-# Este arquivo descreve o estado desejado do seu serviço no Cloud Run.
-# Ele garante que a configuração, incluindo as variáveis de ambiente,
-# seja versionada junto com o seu código.
-
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  # O nome do seu serviço no Cloud Run.
   name: edcat-container
+  labels:
+    cloud.googleapis.com/location: us-east4
 spec:
   template:
+    metadata:
+      annotations:
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 468.0.0
     spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
       containers:
-        # O caminho para a imagem do contêiner que será implantada.
-        # Adotaremos uma abordagem de duas etapas: 1. Construir e enviar a imagem para este caminho. 2. Implantar.
-      - image: gcr.io/edcat-site/edcat-container
-        
-        # Injeta as variáveis de ambiente no contêiner em execução.
-        # Esta é a configuração declarativa que substitui a flag --set-env-vars.
+      - image: gcr.io/edcat-site/edcat-container@sha256:00dbfb7c2fd421865edad3200596ba8e824bbc709907b77d60ebcef1c3219251
+        ports:
+        - name: http1
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
         env:
         - name: GOOGLE_CLOUD_PROJECT
           value: "edcat-site"
-          
-        # Expõe a porta que o seu contêiner está ouvindo.
-        # O seu Dockerfile usa gunicorn na porta 8080.
-        ports:
-        - containerPort: 8080
