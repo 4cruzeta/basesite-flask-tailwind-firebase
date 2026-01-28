@@ -519,3 +519,24 @@ Com essa mudança, a ordem se tornou cristalina: "Sua função é servir arquivo
 **Lição Aprendida:** O Firebase Hosting, quando usado como um proxy para um serviço de back-end, exige clareza absoluta. Qualquer ambiguidade em suas regras de serviço pode levar a falhas de roteamento. Ao dar-lhe um diretório público vazio, removemos toda a confusão e o forçamos a executar sua única tarefa importante: conectar o mundo exterior ao nosso aplicativo. A batalha foi vencida não com força, mas com precisão.
 
 ---
+
+## A Saga da Autenticação: A Paz Definitiva com o Web Preview
+
+**Data Estelar: 07.11.2025 - Adendo de Vitória**
+
+**O Problema Final:** Após a épica "Batalha Contra a Amnésia", onde estabelecemos a lei do cookie `__session`, uma última anomalia persistia. O login funcionava perfeitamente no site externo, mas falhava teimosamente dentro da janela do Web Preview. O usuário era autenticado e imediatamente redirecionado de volta para a tela de login. O "cozinheiro" (nosso backend) nunca recebia o "pedido" (o cookie de sessão) quando o cliente estava no "restaurante" do Web Preview.
+
+**A Investigação: A Desconfiança do Garçom.** A investigação revelou que o problema não era a *lei* do `__session`, mas a *etiqueta* com que ele era entregue. O Web Preview opera dentro de um `iframe`, um contexto "cross-site". O "garçom" (o navegador), por padrão, segue uma política de segurança chamada `SameSite=Lax`, que o proíbe de carregar cookies para um domínio diferente daquele em que ele se encontra. Ele via o pedido vindo de dentro de um `iframe` e, por desconfiança, se recusava a levar o cookie `__session` para o nosso servidor.
+
+**A Solução Diplomática:** A solução não foi uma batalha, mas um acordo diplomático com o navegador. Ao invés de forçar, nós simplesmente ajustamos a etiqueta do nosso cookie para que ele fosse confiável em qualquer situação. No arquivo `edcat_root/views.py`, na função `session_login`, alteramos a forma como o cookie é criado:
+
+```python
+response.set_cookie(
+    '__session',
+    id_token,
+    httponly=True,
+    secure=True,  # Garante que o cookie só viaje em HTTPS.
+    samesite='None' # Diz ao navegador: "Pode confiar e enviar este cookie, mesmo em iframes."
+)
+
+---
