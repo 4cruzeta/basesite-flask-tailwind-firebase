@@ -28,7 +28,7 @@
                             <p class="font-semibold text-gray-800">{{ _('My Profile') }}</p>
                             <p class="text-sm text-gray-600">{{ _('View and edit your profile information.') }}</p>
                         </div>
-                        <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">{{ _('Go') }}</a>
+                        <a href="{{ url_for('views.user_profile', lang_code=g.lang_code) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">{{ _('Go') }}</a>
                     </div>
                     <!-- More links can be added here -->
                 </div>

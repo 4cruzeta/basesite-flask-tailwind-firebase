@@ -540,3 +540,45 @@ response.set_cookie(
 )
 
 ---
+
+Est# A Saga da Autenticação: O Rito de Passagem do Branch `update`
+
+**Data Estelar: 28.01.2026 - A Vitória Final**
+
+**O Problema:** A "Saga da Autenticação" estava completa, a teoria estava sólida, mas a prática exigia um último teste de fogo. Como poderíamos garantir que a "Nova Estratégia de Deploy" era à prova de falhas antes de arriscar o ambiente de produção? A resposta veio na forma de uma das práticas mais sagradas da engenharia de software: o isolamento através de um **feature branch**.
+
+**O Plano:** Nasceu o branch `update`. Sua missão era nobre e clara: servir como um universo paralelo onde poderíamos testar cada passo do nosso novo processo de deploy, do início ao fim, sem tocar no sagrado solo de produção (`main`).
+
+**A Execução - O Universo de Teste:**
+
+1.  **Criação do Branch (`git checkout -b update`):** Com um comando, um novo universo foi criado. O branch `update` tornou-se nosso laboratório.
+
+2.  **Configuração do Clone (`service-update.yaml`):** Criamos um clone do nosso plano de batalha, o `service-update.yaml`. Este arquivo era idêntico ao de produção, mas descrevia um serviço de teste chamado `edcat-container-update`, garantindo total isolamento.
+
+3.  **Deploy em Preview:** Executamos a "Nova Estratégia de Deploy" passo a passo, mas mirando em nossos alvos de teste:
+    *   **Construímos e marcamos uma imagem de teste:** `gcloud builds submit --tag gcr.io/edcat-site/edcat-container:update`
+    *   **Implantamos o serviço de teste:** `gcloud run services replace service-update.yaml`
+    *   **Tornamos o serviço público:** `gcloud run services add-iam-policy-binding edcat-container-update ...`
+    *   **Criamos um canal de preview no Firebase:** `firebase hosting:channel:deploy update`
+
+**A Validação:** O resultado foi um sucesso retumbante. O canal `update` estava no ar, servindo a nova versão do código através do serviço de teste. A estratégia funcionou perfeitamente.
+
+**A Limpeza:** Como bons exploradores, não deixamos rastros. Após a validação, os recursos de teste foram descomissionados com precisão cirúrgica:
+*   `gcloud run services delete edcat-container-update`
+*   `firebase hosting:channel:delete update`
+
+**O Rito de Passagem - O Merge em Produção:**
+
+Com a confiança forjada no teste, era hora de levar a vitória para casa.
+
+1.  **A Fusão dos Universos (`git merge`):** Retornamos ao branch `main` e, com o comando `git merge update`, fundimos o conhecimento e as melhorias do nosso laboratório ao código de produção. Foi a primeira vez que realizamos este rito, um marco para o projeto.
+
+2.  **O Deploy Final:** Repetimos a estratégia de deploy, desta vez para o ambiente de produção:
+    *   `gcloud builds submit --tag gcr.io/edcat-site/edcat-container`
+    *   `gcloud run services replace service.yaml`
+
+3.  **A Lição Final:** Um último desafio nos aguardava. O site em produção ficou inacessível. A lição foi dura, mas valiosa: o comando `replace` também redefine as permissões. Rapidamente, corrigimos o curso, tornando o serviço público novamente e documentando este passo crucial para o futuro.
+
+4.  **A Ascensão (`git push`):** Com o comando `git push origin main`, enviamos o branch `main` atualizado para o GitHub, imortalizando nossa jornada e garantindo que o repositório remoto refletisse o estado vitorioso da produção.
+
+**Conclusão da Saga:** O que começou como uma correção de bug transformou-se em uma jornada épica que redefiniu nossa engenharia. Aprendemos a isolar, testar, validar e implantar com a disciplina e a precisão de uma equipe de elite. O branch `update` não foi apenas um desvio; foi o caminho que nos levou à maestria. A saga está completa.

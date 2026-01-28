@@ -32,12 +32,20 @@ def login_required(view):
             admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
             current_user_role = 'admin' if email in admin_emails else 'user'
 
+            # Fetch user profile from Firestore
+            user_profile_data = {}
+            if db:
+                user_ref = db.collection('users').document(uid)
+                user_doc = user_ref.get()
+                if user_doc.exists:
+                    user_profile_data = user_doc.to_dict()
+
             g.user_profile = {
                 'uid': uid,
                 'email': email,
-                'full_name': g.user.get('name', ''),
-                'role': current_user_role,
-                'status': 'active'
+                'full_name': user_profile_data.get('full_name', g.user.get('name', '')),
+                'role': user_profile_data.get('role', current_user_role),
+                'status': user_profile_data.get('status', 'active')
             }
 
         except auth.InvalidIdTokenError:
@@ -85,18 +93,6 @@ def session_login(lang_code):
     try:
         id_token = request.json['token']
         response = jsonify({"status": "success"})
-
-        # --- CRITICAL WARNING ---
-        # This configuration is the peace treaty from the "Battle Against Amnesia"
-        # documented in EPIC.md. It is essential for login to work inside the
-        # IDX Web Preview, which operates within an iframe.
-        #
-        # - secure=True: Required by browsers for samesite='None'.
-        # - samesite='None': Allows the cookie to be sent in a cross-site context.
-        #
-        # DO NOT CHANGE these values. Modifying them to 'Lax' or removing 
-        # 'secure=True' will break the Web Preview login.
-        # --- END CRITICAL WARNING ---
         response.set_cookie(
             '__session', 
             id_token, 
@@ -133,6 +129,10 @@ def dashboard(lang_code):
 def user_home(lang_code):
     return render_template("user_home.html")
 
+@views.route("/user_profile")
+@login_required
+def user_profile(lang_code):
+    return render_template("user_profile.html")
 
 # --- Admin Dashboard & User Management ---
 
@@ -151,6 +151,27 @@ def admin_home(lang_code):
         except Exception as e:
             print(f"Error fetching users: {e}")
     return render_template("admin_home.html", users=users_list)
+
+@views.route("/api/user/<uid>", methods=['GET'])
+@login_required
+@admin_required
+def get_user_data(lang_code, uid):
+    """API endpoint to fetch data for a single user."""
+    if not db:
+        return jsonify({"status": "error", "message": "Database not connected"}), 500
+    try:
+        user_ref = db.collection('users').document(uid)
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            if 'creation_date' in user_data and hasattr(user_data['creation_date'], 'isoformat'):
+                user_data['creation_date'] = user_data['creation_date'].isoformat()
+            return jsonify(user_data)
+        else:
+            return jsonify({"status": "error", "message": "User not found"}), 404
+    except Exception as e:
+        print(f"Error fetching user data for {uid}: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @views.route("/create_user", methods=['POST'])
 @login_required

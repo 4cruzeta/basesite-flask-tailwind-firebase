@@ -92,8 +92,6 @@
                                 <button 
                                     onclick="openEditModal(this)" 
                                     data-uid="{{ user.uid }}"
-                                    data-full-name="{{ user.full_name or '' }}"
-                                    data-email="{{ user.email }}"
                                     class="text-sm font-medium text-indigo-600 hover:text-indigo-900">{{ _('Edit') }}</button>
                             </div>
                         </div>
@@ -140,23 +138,42 @@
         const editFullName = document.getElementById('edit-fullName');
         const editEmail = document.getElementById('edit-email');
 
-        function openEditModal(button) {
-            // Read data directly from the button's data-* attributes
+        async function openEditModal(button) {
             const uid = button.dataset.uid;
-            const fullName = button.dataset.fullName;
-            const email = button.dataset.email;
-
-            // Set the form's action URL dynamically
             const lang_code = '{{ g.lang_code or "pt_BR" }}';
-            editForm.action = `/${lang_code}/admin/update_user/${uid}`;
+            const apiUrl = `/${lang_code}/api/user/${uid}`;
 
-            // Populate the form fields instantly
-            editUid.value = uid;
-            editFullName.value = fullName;
-            editEmail.value = email;
+            try {
+                // Disable the button to prevent multiple clicks
+                button.disabled = true;
 
-            // Show the modal
-            modal.classList.remove('hidden');
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch user data.');
+                }
+
+                const userData = await response.json();
+
+                // Set the form's action URL dynamically
+                editForm.action = `/${lang_code}/admin/update_user/${uid}`;
+
+                // Populate the form fields with data from the API
+                editUid.value = uid;
+                editFullName.value = userData.full_name || '';
+                editEmail.value = userData.email || '';
+                
+                // Show the modal
+                modal.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error opening edit modal:", error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                // Re-enable the button once the process is complete
+                button.disabled = false;
+            }
         }
 
         function closeEditModal() {
@@ -171,5 +188,6 @@
             }
         }
     </script>
+
 </body>
 </html>

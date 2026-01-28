@@ -4,6 +4,21 @@ Este documento é a nossa fonte única de verdade para as próximas missões de 
 
 ---
 
+## Missões Concluídas
+
+### A Saga da Autenticação
+- [x] **Diagnosticar e Corrigir Erro de Autenticação:** Investigar e resolver o `PERMISSION_DENIED` no acesso ao Firestore.
+- [x] **Implementar Estratégia de Deploy Declarativa:** Criar arquivos `service.yaml` para gerenciar a configuração do Cloud Run como código.
+- [x] **Criar Ambiente de Teste Dinâmico:** Desenvolver e validar o processo de deploy em um canal de preview do Firebase e um serviço temporário no Cloud Run.
+- [x] **Validar e Promover para Produção:** Executar o teste de ponta-a-ponta, fazer o merge para o `main` e realizar o deploy em produção.
+- [x] **Limpar Recursos de Teste:** Remover o serviço temporário e o canal de preview após o sucesso do deploy.
+
+### Missão 3: Melhoria da Experiência de Edição (UX)
+- [x] **Criar Endpoint de Dados do Usuário:** Desenvolver uma rota de API no Flask (`/api/user/<uid>`).
+- [x] **Lógica de Fetch no Cliente:** Implementar a chamada `fetch` no JavaScript para popular o formulário de edição com dados em tempo real.
+
+---
+
 ## Missão 1: Centro de Comando de Usuários (Admin Dashboard)
 
 **Status:** Planejamento Concluído
@@ -46,20 +61,5 @@ Este documento é a nossa fonte única de verdade para as próximas missões de 
     - `logout_timestamp` (timestamp)
     - `duration_seconds` (number)
 - [ ] **Implementar Lógica no Endpoint:** No endpoint `/session_logout`, calcular a duração da sessão e criar um novo documento na coleção `session_history`.
-
----
-
-## Missão 3: Melhoria da Experiência de Edição (UX)
-
-**Status:** Planejamento Concluído
-
-**Objetivo:** Ao editar um registro de usuário, os campos do formulário devem ser pré-carregados com os dados existentes.
-
-### Tarefa 3.1: Carregamento de Dados no Formulário
-- [ ] **Criar Endpoint de Dados do Usuário:** Desenvolver uma rota de API no Flask (ex: `/api/user/<uid>`) que retorna os dados de um usuário específico do Firestore.
-- [ ] **Lógica de Fetch no Cliente:** Quando o botão "Editar" é clicado, o JavaScript deve:
-    - Chamar o novo endpoint com o `uid` do usuário.
-    - Receber os dados do usuário (nome, email, role, status).
-    - Popular os campos do formulário de edição com os dados recebidos antes de exibi-lo.
 
 ---

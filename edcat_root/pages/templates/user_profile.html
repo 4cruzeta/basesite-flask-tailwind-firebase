@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="{{ g.lang_code or 'pt_BR' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <title>{{ _('My Profile') }} - {{ _('EDCAT') }}</title>
+</head>
+<body class="bg-gray-100">
+    <div class="container relative flex flex-col justify-between h-full max-w-6xl px-4 sm:px-10 mx-auto xl:px-0 mt-5">
+        {% include 'header.html' %}
+
+        <div class="w-full mx-auto mt-12 mb-16">
+            <div class="flex flex-col items-center justify-center mb-12">
+                <h2 class="text-3xl font-bold leading-tight text-gray-900">{{ _('My Profile') }}</h2>
+                <p class="text-gray-600">
+                    {{ _('View and manage your profile information.') }}
+                </p>
+            </div>
+
+            <!-- User Profile Card -->
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md max-w-2xl mx-auto">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500">{{ _('Full Name') }}</label>
+                        <p class="mt-1 text-lg text-gray-900">{{ g.user_profile.full_name or '(Not provided)' }}</p>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4">
+                        <label class="block text-sm font-medium text-gray-500">{{ _('Email Address') }}</label>
+                        <p class="mt-1 text-lg text-gray-900">{{ g.user_profile.email }}</p>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4">
+                        <label class="block text-sm font-medium text-gray-500">{{ _('Role') }}</label>
+                        <p class="mt-1 text-lg text-gray-900 capitalize">{{ g.user_profile.role }}</p>
+                    </div>
+                     <div class="border-t border-gray-200 pt-4">
+                        <label class="block text-sm font-medium text-gray-500">{{ _('Status') }}</label>
+                        <p class="mt-1 text-lg text-gray-900 capitalize">{{ g.user_profile.status }}</p>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <a href="{{ url_for('views.dashboard', lang_code=g.lang_code) }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                        &larr; {{ _('Back to Dashboard') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
