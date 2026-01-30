@@ -1,6 +1,7 @@
 # Stage 1: Build Tailwind CSS
 FROM node:22-alpine AS tailwind_builder
 
+# Forcing a rebuild to ensure all latest code changes are included.
 WORKDIR /app
 
 # First, copy only the files needed for npm install to leverage Docker cache
@@ -43,5 +44,5 @@ COPY --from=tailwind_builder /app/edcat_root/static/css/style.css ./edcat_root/s
 
 EXPOSE 8080
 
-# Run the app using gunicorn
-CMD ["gunicorn", "--chdir", "edcat_root", "--bind", ":8080", "--workers", "1", "--threads", "8", "main:app"]
+# Run the app using gunicorn - CORRECTED COMMAND
+CMD ["gunicorn", "--bind", ":8080", "--workers", "1", "--threads", "8", "edcat_root.main:app"]

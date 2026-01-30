@@ -27,6 +27,9 @@
           env = {
             PORT = "$PORT";
             GOOGLE_CLOUD_PROJECT = "edcat-site";
+            # IMPORTANT: Replace with a valid WhatsApp number (including country code)
+            # that you have registered for testing with your Meta App.
+            TEST_WHATSAPP_RECIPIENT = "5511999022474";
           };
           manager = "web";
         };

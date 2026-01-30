@@ -91,6 +91,7 @@ def create_app():
     # --- Register Blueprints and Routes ---
     with app.app_context():
         from . import views
+        from .whatsapp.routes import whatsapp_bp
 
         @app.before_request
         def set_lang_code():
@@ -103,7 +104,10 @@ def create_app():
             lang_code = request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or app.config['BABEL_DEFAULT_LOCALE']
             return redirect(url_for('views.home', lang_code=lang_code))
 
+        # Register Blueprints
         app.register_blueprint(views.views, url_prefix='/<lang_code>')
+        # FIX: Register the WhatsApp blueprint with the correct prefix
+        app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')
         
         from .util import inject_context_processors
         inject_context_processors(app)
