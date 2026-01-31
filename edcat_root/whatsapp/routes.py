@@ -39,24 +39,36 @@ def handle_webhook():
             data = request.get_json()
             logging.info(f"Received POST request with data: {data}")
 
-            # Extract message details safely
+            # Extract message details safely, adapted for v24.0 payload structure
             try:
-                # The payload structure can be complex, so we navigate it carefully.
-                change = data["entry"][0]["changes"][0]
-                if change["field"] == "messages":
-                    message_data = change["value"]["messages"][0]
-                    sender_phone = message_data["from"]
-                    message_body = message_data["text"]["body"]
+                # Use .get() to avoid KeyError if keys are missing
+                if (
+                    data.get("entry")
+                    and data["entry"][0].get("changes")
+                    and data["entry"][0]["changes"][0].get("value")
+                    and data["entry"][0]["changes"][0]["value"].get("messages")
+                ):
+                    message_data = data["entry"][0]["changes"][0]["value"]["messages"][0]
                     
-                    # --- ECHO LOGIC ---
-                    # Send the received message back to the user.
-                    logging.info(f"Sending echo message to {sender_phone}")
-                    response_text = f"Eco: {message_body}"
-                    send_whatsapp_message(to=sender_phone, message_text=response_text)
-                    
+                    # Check if the message type is 'text' before proceeding
+                    if message_data.get("type") == "text":
+                        sender_phone = message_data["from"]
+                        message_body = message_data["text"]["body"]
+                        
+                        # --- ECHO LOGIC ---
+                        # Send the received message back to the user.
+                        logging.info(f"Sending echo message to {sender_phone}")
+                        response_text = f"Eco: {message_body}"
+                        send_whatsapp_message(to=sender_phone, message_text=response_text)
+                    else:
+                        logging.info("Received a non-text message type. Skipping echo.")
+                else:
+                    # This logs if the payload is from a status update or other non-message event
+                    logging.info("Payload does not contain a user message. Skipping.")
+
             except (KeyError, IndexError) as e:
-                # This handles cases where the payload is not a user message (e.g., status updates)
-                logging.warning(f"Could not parse message from payload. Payload might not be a user message. Error: {e}")
+                # This handles unexpected payload structures
+                logging.warning(f"Could not parse message from payload. Error: {e}")
 
             # You must respond with a 200 OK to Meta within seconds.
             return "", 204

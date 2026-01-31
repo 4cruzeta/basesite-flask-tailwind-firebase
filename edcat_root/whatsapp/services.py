@@ -13,7 +13,7 @@ _secret_cache = {}
 def _access_secret_version(secret_id: str) -> str | None:
     """
     Access the latest version of a secret from Google Secret Manager.
-    Includes in-memory caching to reduce API calls.
+    Includes in-memory caching and automatically strips whitespace.
     """
     if secret_id in _secret_cache:
         return _secret_cache[secret_id]
@@ -28,7 +28,8 @@ def _access_secret_version(secret_id: str) -> str | None:
     try:
         # Access the secret version.
         response = client.access_secret_version(request={"name": name})
-        secret = response.payload.data.decode("UTF-8")
+        # Decode and strip leading/trailing whitespace (like newlines).
+        secret = response.payload.data.decode("UTF-8").strip()
         _secret_cache[secret_id] = secret
         return secret
     except Exception as e:
@@ -79,7 +80,7 @@ def send_whatsapp_message(to: str, message_text: str) -> requests.Response:
         The response object from the requests library.
     """
     credentials = get_whatsapp_credentials()
-    api_version = "v19.0"  # It's good practice to lock the API version
+    api_version = "v24.0"  # It's good practice to lock the API version
     url = f"https://graph.facebook.com/{api_version}/{credentials['phone_number_id']}/messages"
     
     headers = {
