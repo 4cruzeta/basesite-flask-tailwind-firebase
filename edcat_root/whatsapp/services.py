@@ -41,7 +41,7 @@ def get_whatsapp_credentials() -> dict:
     Retrieves all necessary WhatsApp credentials from Google Secret Manager.
 
     Returns:
-        A dictionary containing the access_token, phone_number_id, and verify_token.
+        A dictionary containing all required credentials.
 
     Raises:
         RuntimeError: If any of the required credentials cannot be fetched.
@@ -49,10 +49,12 @@ def get_whatsapp_credentials() -> dict:
     access_token = _access_secret_version("WHATSAPP_ACCESS_TOKEN")
     phone_number_id = _access_secret_version("WHATSAPP_PHONE_NUMBER_ID")
     verify_token = _access_secret_version("WHATSAPP_VERIFY_TOKEN")
+    waba_id = _access_secret_version("WHATSAPP_WABA_ID") # Fetch the new ID
+    pin = _access_secret_version("WHATSAPP_PIN") # Fetch the PIN
 
-    if not all([access_token, phone_number_id, verify_token]):
+    if not all([access_token, phone_number_id, verify_token, waba_id, pin]):
         raise RuntimeError(
-            "FATAL: One or more WhatsApp credentials could not be retrieved "
+            "FATAL: One or more WhatsApp credentials (including PIN) could not be retrieved "
             "from Secret Manager. Ensure they are set and the service account "
             "has the 'Secret Manager Secret Accessor' role."
         )
@@ -61,6 +63,8 @@ def get_whatsapp_credentials() -> dict:
         "access_token": access_token,
         "phone_number_id": phone_number_id,
         "verify_token": verify_token,
+        "waba_id": waba_id,
+        "pin": pin, # Include the PIN
     }
 
 def send_whatsapp_message(to: str, message_text: str) -> requests.Response:
@@ -100,4 +104,3 @@ def send_whatsapp_message(to: str, message_text: str) -> requests.Response:
     response.raise_for_status()  # Raise an exception for HTTP error codes
     
     return response
-
