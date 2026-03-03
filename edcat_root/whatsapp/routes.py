@@ -1,79 +1,73 @@
 
-from flask import Blueprint, request, current_app
-from .services import get_whatsapp_credentials, send_whatsapp_message
 import logging
+from flask import Blueprint, request
 
-# It's good practice to use a logger for better debugging and monitoring.
+from .services import get_whatsapp_credentials, send_whatsapp_message
+from edcat_root.rag_agent.agent import rag_agent  # <-- IMPORT THE BRAIN
+
 logging.basicConfig(level=logging.INFO)
 
-# Define the Blueprint for WhatsApp routes
 whatsapp_bp = Blueprint(
     "whatsapp_bp", __name__, template_folder="templates", static_folder="static"
 )
 
-@whatsapp_bp.route("/webhooks/whatsapp", methods=["GET", "POST"])
+@whatsapp_bp.route("/webhooks/whatsapp", methods=["GET", "POST", "PUT"])
 def handle_webhook():
-    """
-    Handles both verification (GET) and incoming message notifications (POST)
-    from the Meta WhatsApp Business API.
-    """
-    try:
+    """Handles webhook verification and incoming user messages."""
+    # 1. Handle webhook verification
+    if request.method == "GET":
+        # (Verification logic remains the same)
         credentials = get_whatsapp_credentials()
         verify_token = credentials.get("verify_token")
+        mode = request.args.get("hub.mode")
+        token = request.args.get("hub.verify_token")
+        challenge = request.args.get("hub.challenge")
+        if mode == "subscribe" and token == verify_token:
+            logging.info("SUCCESS: Webhook verified.")
+            return challenge, 200
+        else:
+            logging.warning("Webhook verification failed.")
+            return "Forbidden", 403
 
-        if request.method == "GET":
-            # This is the verification request from Meta.
-            mode = request.args.get("hub.mode")
-            token = request.args.get("hub.verify_token")
-            challenge = request.args.get("hub.challenge")
-
-            if mode == "subscribe" and token == verify_token:
-                logging.info("WEBHOOK_VERIFIED")
-                return challenge, 200
-            else:
-                logging.warning("Webhook verification failed. Tokens do not match.")
-                return "Forbidden", 403
-
-        elif request.method == "POST":
-            # This is an incoming message notification.
+    # 2. Handle incoming events
+    elif request.method == "POST" or request.method == "PUT":
+        try:
             data = request.get_json()
-            logging.info(f"Received POST request with data: {data}")
+            if not data or not data.get("entry"):
+                return "OK", 200
 
-            # Extract message details safely, adapted for v24.0 payload structure
-            try:
-                # Use .get() to avoid KeyError if keys are missing
-                if (
-                    data.get("entry")
-                    and data["entry"][0].get("changes")
-                    and data["entry"][0]["changes"][0].get("value")
-                    and data["entry"][0]["changes"][0]["value"].get("messages")
-                ):
-                    message_data = data["entry"][0]["changes"][0]["value"]["messages"][0]
-                    
-                    # Check if the message type is 'text' before proceeding
-                    if message_data.get("type") == "text":
-                        sender_phone = message_data["from"]
-                        message_body = message_data["text"]["body"]
-                        
-                        # --- ECHO LOGIC ---
-                        # Send the received message back to the user.
-                        logging.info(f"Sending echo message to {sender_phone}")
-                        response_text = f"Eco: {message_body}"
-                        send_whatsapp_message(to=sender_phone, message_text=response_text)
-                    else:
-                        logging.info("Received a non-text message type. Skipping echo.")
-                else:
-                    # This logs if the payload is from a status update or other non-message event
-                    logging.info("Payload does not contain a user message. Skipping.")
+            value = data["entry"][0]["changes"][0].get("value", {})
 
-            except (KeyError, IndexError) as e:
-                # This handles unexpected payload structures
-                logging.warning(f"Could not parse message from payload. Error: {e}")
+            # --- MAIN LOGIC --- #
 
-            # You must respond with a 200 OK to Meta within seconds.
-            return "", 204
+            # Handle incoming messages from users
+            if value.get("messages"):
+                message_data = value["messages"][0]
+                sender_phone = message_data.get("from")
+                message_body = message_data.get("text", {}).get("body", "")
+                message_id = message_data.get("id")
+                
+                if not message_body: # Ignore empty messages
+                    return "OK", 200
 
-    except Exception as e:
-        # A general catch-all for unexpected errors.
-        logging.error(f"An unexpected error occurred in webhook handler: {e}", exc_info=True)
-        return "Internal Server Error", 500
+                logging.info(f'Received message from {sender_phone} (ID: {message_id}): "{message_body}" ')
+
+                # --- SEND QUERY TO BRAIN --- #
+                logging.info("Sending query to RAG Agent...")
+                agent_response = rag_agent.generate_response(message_body)
+
+                # --- SEND AGENT'S RESPONSE BACK TO USER ---
+                logging.info(f"Sending agent response to {sender_phone}: \"{agent_response}\"")
+                send_whatsapp_message(to=sender_phone, message_text=agent_response)
+
+            # Handle message echoes (if Meta ever fixes them)
+            elif value.get("message_echoes"):
+                echo_data = value["message_echoes"][0]
+                logging.info(f"Received a message echo for message ID: {echo_data.get('id')}")
+
+        except Exception as e:
+            logging.error(f"Error processing webhook event: {e}", exc_info=True)
+
+        return "OK", 200
+
+    return "Not Found", 404

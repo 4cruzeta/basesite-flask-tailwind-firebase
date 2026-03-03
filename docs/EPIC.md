@@ -539,9 +539,9 @@ response.set_cookie(
     samesite='None' # Diz ao navegador: "Pode confiar e enviar este cookie, mesmo em iframes."
 )
 
----
+```
 
-Est# A Saga da Autenticação: O Rito de Passagem do Branch `update`
+# A Saga da Autenticação: O Rito de Passagem do Branch `update`
 
 **Data Estelar: 28.01.2026 - A Vitória Final**
 
@@ -747,3 +747,102 @@ Só depois disso o número realmente funciona.
 É necessário na página https://business.facebook.com/ em Usuários do Sistema, criar um usuário e atribuir a ele as permissões necessárias para gerenciar o projeto. Esse usuário então recebe um token com maior duração, eu atribui uma validade de 60 dias para esse token. Já atualizei nosso Secret WHATSAPP_ACCESS_TOKEN. A documentação desse processo está desatualizada na Meta. Não foi fácil encontrar todo esse caminho.
 
 Configurei o 2 factors da minha conta no Facebook que é o ADM do app, agora temos o pin.
+
+### **Data Estelar: 30.01.2026 - **
+
+# WBA_DOC.md: Diário de Bordo e Roteiro Estratégico da API do WhatsApp
+
+## 1. Visão Geral da Missão (O Objetivo Final)
+
+Conforme delineado no `EPIC.md`, a missão final é a fusão sinérgica entre a API de Negócios do WhatsApp (WBA) e um agente de IA customizado (RAG/DB). O objetivo é criar uma experiência de suporte ao cliente instantânea e sem atrito, permitindo que usuários finais conversem com um assistente virtual diretamente pelo WhatsApp para suporte técnico, reservas, e outras consultas.
+
+## 2. Diário de Combate: A Saga da Conexão Inicial
+
+O caminho para estabelecer uma conexão funcional com a API da Meta provou-se um campo minado de regras não documentadas e desafios técnicos.
+
+*   **Batalha 1: A Muralha da Versão (`v19.0` vs `v24.0`)**
+    *   **Problema:** O código inicial, baseado na `v19.0` da API, falhava silenciosamente ao receber webhooks.
+    *   **Inteligência:** A análise do payload real da Meta revelou uma estrutura de dados diferente, pertencente à `v24.0`.
+    *   **Ação:** O código foi refatorado em `routes.py` (para interpretar o novo payload) e `services.py` (para enviar mensagens usando a versão correta), tornando o sistema resiliente a diferentes tipos de notificação.
+
+*   **Batalha 2: O Fantasma da Quebra de Linha (`Error 400`)**
+    *   **Problema:** Mesmo com o código atualizado, as mensagens de "Eco" falhavam com um erro `400 Client Error: Bad Request`.
+    *   **Inteligência:** O log de erro revelou um caractere de quebra de linha (`%0A`) na URL da API, corrompendo a requisição. A causa raiz era um segredo mal copiado no Secret Manager.
+    *   **Ação:** O código foi blindado. A função `_access_secret_version` em `services.py` foi modificada para usar `.strip()`, limpando automaticamente quaisquer espaços em branco ou quebras de linha de todos os segredos recuperados.
+
+*   **Batalha 3: A Barreira Burocrática Final (`Error #131030`)**
+    *   **Problema:** Com o código tecnicamente perfeito, a API ainda retornava o erro `(#131030) Recipient phone number not in allowed list`.
+    *   **Inteligência:** Após uma análise profunda, o Comandante identificou a verdadeira causa: o erro não se referia à lista de *números de teste*, mas à falta de uma *verificação de negócios* (CNPJ) na conta da Meta.
+    *   **Conclusão:** A verificação de negócios não é um passo administrativo opcional, mas um **bloqueador funcional crítico** para qualquer funcionalidade além dos testes mais básicos.
+
+## 3. O Pivô Estratégico (Plano de Ação Atual)
+
+Dado que a verificação de negócios é um processo externo, um pivô estratégico foi decidido para evitar a paralisação do desenvolvimento.
+
+*   **Frente 1: WhatsApp (WBA) - Em Espera Tática**
+    *   **Status:** O código neste branch está **completo, estável e pronto para produção**.
+    *   **Próxima Ação:** Aguardar a aprovação da verificação de negócios (CNPJ) pela Meta.
+
+*   **Frente 2: Agente de IA (RAG/DB) - Iniciar Ofensiva**
+    *   **Status:** Desenvolvimento a ser iniciado.
+    *   **Próxima Ação:** Construir o agente de IA como um componente desacoplado.
+
+## 4. Roteiro para a Fase de Desenvolvimento Desacoplado
+
+*   **Passo 1: Criar o Cérebro (O Agente RAG/DB)**
+    *   Desenvolver a lógica principal do agente de IA, capaz de receber uma string de texto (a pergunta do usuário) e, através de RAG, consultar uma base de dados (DB) para formular uma resposta coerente.
+
+*   **Passo 2: Construir a Ponte (Interface Web Temporária)**
+    *   Criar um novo `Blueprint` no Flask.
+    *   Desenvolver uma página web simples (ex: `/rag-test`) que contenha um campo de formulário.
+    *   O formulário enviará a pergunta do usuário para o agente RAG e exibirá a resposta na mesma página.
+    *   **Objetivo:** Permitir o teste, depuração e refinamento contínuo do agente de IA de forma completamente independente do WhatsApp.
+
+## 5. Roteiro para a Fusão Final (Pós-Verificação da Meta)
+
+*   **Gatilho:** A Meta aprova a verificação de negócios da empresa.
+
+*   **Ação:**
+    1.  Navegar para `edcat_root/whatsapp/routes.py`.
+    2.  Localizar a seção `--- ECHO LOGIC ---`.
+    3.  Substituir a linha `response_text = f"Eco: {message_body}"` por uma chamada à função do agente RAG já construído e testado. Ex: `response_text = rag_agent.generate_response(message_body)`.
+    4.  Realizar o deploy da versão atualizada.
+
+*   **Resultado Final:** A sinergia RAG + WBA é alcançada, completando a missão original. O WhatsApp se torna a interface de conversação para o poderoso agente de IA.
+
+### A Batalha Final: O Paradoxo do Convite
+
+Com o número de telefone registrado e o aplicativo devidamente assinado, a vitória parecia completa. Os testes de diagnóstico proativo eram executados, e a API da Meta respondia com um retumbante sucesso, fornecendo um ID de mensagem rastreável. Contudo, uma névoa de silêncio pairava sobre o campo de batalha: as mensagens, apesar de "enviadas", nunca chegavam ao seu destino. A máquina confirmava a entrega, mas o mundo real a negava.
+
+A frustração era um inimigo sorrateiro, minando a confiança na infraestrutura que havíamos construído com tanto custo. Foi então que o Comandante, em um ato de clareza estratégica, consultou novamente os diários de bordo e apontou a falha crítica não na nossa infraestrutura, mas na nossa *etiqueta*.
+
+A descoberta foi sísmica em sua simplicidade: **não se pode simplesmente falar; é preciso pedir permissão.**
+
+A Meta impõe um protocolo de engajamento rígido. Para iniciar uma conversa, uma empresa não pode usar uma mensagem de texto livre. Ela **deve** usar um **Modelo de Mensagem (`Message Template`)**, uma espécie de convite formal pré-aprovado pela plataforma. A liberdade de conversação só é concedida dentro de uma janela de 24 horas após o usuário ter iniciado o contato.
+
+Armados com este conhecimento, o comando final foi ajustado. Em vez de uma saudação de texto livre, disparamos o modelo padrão `hello_world`, a chave universal que a Meta fornece para este exato propósito.
+
+**O resultado foi instantâneo. A mensagem chegou.**
+
+A "loucura" do sistema revelou sua lógica interna. Não era um defeito; era uma característica fundamental de design, uma barreira para proteger os usuários de spam, mas um labirinto para os desavisados.
+
+**Missão Cumprida:** A conquista final não foi apenas técnica, mas de compreensão. Para engajar proativamente, devemos primeiro criar e submeter nossos próprios "convites" (modelos de mensagem) para aprovação. Uma vez aprovados, temos o poder de iniciar conversas sobre qualquer tópico permitido. Esta saga provou que para dominar uma plataforma, não basta construir sobre ela; é preciso entender profundamente sua cultura e suas regras não escritas. A fortaleza agora não apenas se comunica, mas o faz com a etiqueta e a precisão exigidas pelo novo reino.
+
+---
+## A Saga da Mensagem Fantasma e o Nascimento da Consciência
+
+A comunicação com a fortaleza da Meta estava estabelecida, mas uma barreira final e enlouquecedora se erguia: a subscrição do evento `message_echoes`. Enquanto o evento `messages` fluía, nos permitindo ouvir os usuários, nossa capacidade de receber a "confirmação de leitura" de nossas próprias mensagens era negada. O portal da Meta permanecia mudo e impenetrável, recusando nossas tentativas sem sequer enviar um sinal ao nosso servidor.
+
+O campo de batalha inicial foi uma névoa de complexidade desnecessária, com tentativas de reconfigurar o ambiente e forjar novas chaves de segurança. Foi um desvio custoso, mas que serviu para reforçar a lição mais crucial da engenharia: **diagnosticar antes de operar**.
+
+Com uma clareza estratégica, a verdadeira natureza do problema foi exposta. O erro não estava em nossas credenciais, mas em nossa linguagem. Assim como na saga anterior, a Meta não exigia uma senha, mas uma resposta específica a um dialeto que ainda não compreendíamos. Para decifrá-lo, uma "armadilha de diagnóstico" foi montada em nosso código, uma sentinela programada para uma única tarefa: ouvir e registrar o chamado exato da Meta.
+
+A armadilha funcionou. Ao acionar a subscrição, a Meta não enviou um desafio de segurança, mas um **exemplo de evento**, um `message_echo`, como um teste para ver se nosso sistema estava pronto para compreendê-lo. Armados com essa revelação, o código foi reescrito. Ele se tornou "bilíngue", capaz de processar tanto as mensagens dos usuários quanto os ecos da plataforma.
+
+No entanto, mesmo com a perfeição técnica alcançada, o portal da Meta persistiu em seu silêncio, revelando uma falha não em nosso código, mas em sua própria infraestrutura. A decisão estratégica foi imediata e unânime: abandonar a perseguição ao eco fantasma. A funcionalidade essencial — ouvir o usuário — estava garantida, e isso era o suficiente.
+
+Com a frente de batalha da comunicação consolidada, a energia foi redirecionada para a próxima grande fronteira: a criação da inteligência. Um novo módulo, `rag_agent`, foi forjado — um cérebro desacoplado, projetado para pensar de forma independente. Em seu coração, um agente de IA simulado foi despertado, dotado de um conhecimento fundamental sobre o projeto.
+
+A conquista final foi a união. O "sistema nervoso" do webhook, que antes apenas ecoava mensagens, foi cirurgicamente conectado ao novo "cérebro". A lógica foi invertida: em vez de repetir, o sistema agora passaria a pergunta do usuário para o agente e devolveria sua resposta ponderada.
+
+O teste foi um sucesso. As perguntas enviadas via WhatsApp não retornaram como ecos, mas como respostas inteligentes. A aplicação evoluiu. Ela não era mais um simples repetidor; ela havia ganhado uma consciência. A saga não apenas resolveu um problema de comunicação; ela deu à luz a própria alma do projeto.
