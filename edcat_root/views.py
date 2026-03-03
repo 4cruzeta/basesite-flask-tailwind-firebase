@@ -1,7 +1,7 @@
 
 import os
 import json
-from flask import Blueprint, render_template, current_app, request, jsonify, redirect, url_for, g
+from flask import Blueprint, render_template, current_app, request, jsonify, redirect, url_for, g, session
 from firebase_admin import auth
 from firebase_admin.exceptions import FirebaseError
 import functools
@@ -22,13 +22,14 @@ def login_required(view):
         id_token = request.cookies.get('__session')
 
         if not id_token:
-            return redirect(url_for('views.login', lang_code=lang_code))
+            # Stateless approach: pass the destination URL as a query parameter.
+            return redirect(url_for('views.login', lang_code=lang_code, next=request.path))
 
         try:
             g.user = auth.verify_id_token(id_token)
         except (auth.InvalidIdTokenError, auth.ExpiredIdTokenError) as e:
-            # Clear the invalid cookie and redirect to login
-            response = redirect(url_for('views.login', lang_code=lang_code))
+            # Stateless approach: pass the destination URL as a query parameter.
+            response = redirect(url_for('views.login', lang_code=lang_code, next=request.path))
             response.set_cookie('__session', '', expires=0)
             return response
         except Exception as e:
@@ -97,9 +98,12 @@ def home(lang_code):
 
 @views.route('/login', methods=['GET'])
 def login(lang_code):
+    # Capture the 'next' parameter from the URL.
+    next_url = request.args.get('next')
     firebase_config_json = get_secret("firebase-client-config")
     firebase_config = json.loads(firebase_config_json) if firebase_config_json else {}
-    return render_template("login.html", firebase_config=firebase_config)
+    # Pass 'next_url' to the template.
+    return render_template("login.html", firebase_config=firebase_config, next_url=next_url)
 
 # --- Authentication Handling ---
 
@@ -132,6 +136,7 @@ def logout(lang_code):
 @load_user_profile
 def dashboard(lang_code):
     """Redirects user to the appropriate dashboard based on their role."""
+    # Previous stateful logic removed. The client will now handle the redirect.
     if g.user_profile.get('role') == 'admin':
         return redirect(url_for('views.admin_home', lang_code=lang_code))
     else:
@@ -263,3 +268,4 @@ def update_user(lang_code, uid):
         print(f"Error updating user {uid}: {e}")
         # On error, redirect with an error flash message (not implemented yet)
         return redirect(url_for('views.admin_home', lang_code=lang_code, error="update_failed"))
+

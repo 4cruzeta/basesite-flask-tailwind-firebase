@@ -53,6 +53,9 @@
         const passwordField = document.getElementById('password');
         const errorField = document.getElementById('login-error');
 
+        // The 'next_url' is now passed from the server.
+        const nextUrl = "{{ next_url or '' }}";
+
         loginButton.addEventListener('click', (e) => {
             e.preventDefault();
             const email = emailField.value;
@@ -79,10 +82,15 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data.success) { // <-- CORRECTED: Check for boolean `true` instead of string `success`
-                        // Redirect to the role-based dashboard for dynamic routing.
-                        const langCode = "{{ g.lang_code or 'pt_BR' }}";
-                        window.location.href = `/${langCode}/dashboard`;
+                    if (data.success) {
+                        // If a 'nextUrl' exists, redirect there.
+                        if (nextUrl) {
+                            window.location.href = nextUrl;
+                        } else {
+                            // Otherwise, proceed to the default dashboard.
+                            const langCode = "{{ g.lang_code or 'pt_BR' }}";
+                            window.location.href = `/${langCode}/dashboard`;
+                        }
                     } else {
                         throw new Error(data.error || 'Backend error during login.');
                     }

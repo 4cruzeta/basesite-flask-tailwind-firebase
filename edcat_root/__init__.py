@@ -18,7 +18,7 @@ def get_secret(secret_id, version_id="latest"):
     project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
     if not project_id:
         print("Warning: GOOGLE_CLOUD_PROJECT environment variable not set.")
-        return None 
+        return None
 
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
@@ -92,6 +92,8 @@ def create_app():
     with app.app_context():
         from . import views
         from .whatsapp.routes import whatsapp_bp
+        from .api.routes import api_bp
+        from .web_client.routes import web_client_bp # <-- IMPORT THE NEW BLUEPRINT
 
         @app.before_request
         def set_lang_code():
@@ -99,16 +101,18 @@ def create_app():
             if g.lang_code not in app.config['LANGUAGES']:
                 g.lang_code = None
 
-        @app.route('/')
-        def root_redirect():
-            lang_code = request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or app.config['BABEL_DEFAULT_LOCALE']
-            return redirect(url_for('views.home', lang_code=lang_code))
-
         # Register Blueprints
         app.register_blueprint(views.views, url_prefix='/<lang_code>')
-        # FIX: Register the WhatsApp blueprint with the correct prefix
         app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')
+        app.register_blueprint(api_bp, url_prefix='/api')
+        app.register_blueprint(web_client_bp, url_prefix='/<lang_code>/client') # <-- REGISTER THE NEW BLUEPRINT
         
+        @app.route('/')
+        def root():
+            # Redirect root to default language home
+            default_lang = app.config.get('BABEL_DEFAULT_LOCALE', 'pt_BR')
+            return redirect(url_for('views.home', lang_code=default_lang))
+
         from .util import inject_context_processors
         inject_context_processors(app)
 

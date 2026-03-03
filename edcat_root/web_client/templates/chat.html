@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDCAT - Admin Chat Test</title>
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+</head>
+<body class="h-full font-sans antialiased">
+    <div class="flex h-screen">
+        <!-- Coluna da Esquerda: Menu de Conversas -->
+        <div class="flex flex-col w-80 bg-white border-r border-gray-200">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Conversas</h2>
+                <button class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <a href="#" class="block p-4 text-sm text-gray-700 hover:bg-gray-50 border-r-4 border-transparent">
+                    <p class="truncate">Primeira Conversa sobre o Projeto...</p>
+                </a>
+                <a href="#" class="block p-4 text-sm font-semibold text-blue-600 bg-blue-50 border-r-4 border-blue-500">
+                    <p class="truncate">Planejamento da Interface Web...</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Coluna da Direita: Janela de Chat Ativa -->
+        <div class="flex-1 flex flex-col bg-white">
+            <div class="flex-1 p-6 overflow-y-auto space-y-4">
+                <!-- Exemplo de Mensagens -->
+                <div class="flex justify-end">
+                    <div class="p-3 rounded-lg max-w-lg bg-blue-500 text-white shadow-sm">
+                        <p>Qual é o primeiro passo para criar a interface do cliente web?</p>
+                    </div>
+                </div>
+                <div class="flex justify-start">
+                    <div class="p-3 rounded-lg max-w-lg bg-gray-100 text-gray-800 shadow-sm">
+                        <p>O primeiro passo é definir a estrutura HTML básica, agora usando Tailwind CSS para estilização, dividindo a tela em um menu lateral e uma janela principal.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-200">
+                <form id="chat-form" class="flex items-center">
+                    <input type="text" id="message-input" placeholder="Digite sua mensagem..." autocomplete="off" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button type="submit" class="ml-3 px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Enviar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
