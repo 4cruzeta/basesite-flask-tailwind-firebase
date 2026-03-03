@@ -35,20 +35,10 @@
                             <label for="password" class="block text-sm font-medium text-gray-700">{{ _('Password') }}</label>
                             <input type="password" name="password" id="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
-                        <div>
-                            <label for="role" class="block text-sm font-medium text-gray-700">{{ _('Role') }}</label>
-                            <select name="role" id="role" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="user" selected>{{ _('User') }}</option>
-                                <option value="admin">{{ _('Admin') }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700">{{ _('Status') }}</label>
-                            <select name="status" id="status" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                <option value="active" selected>{{ _('Active') }}</option>
-                                <option value="inactive">{{ _('Inactive') }}</option>
-                            </select>
-                        </div>
+                        <!-- NOTE: The 'role' and 'status' fields were here, but they are redundant.
+                             The backend now assigns roles based on the TESTER_USERS and ADMIN_USERS secrets upon creation.
+                             Admins can then change the role in the user list below. Removing these fields simplifies the UI.
+                        -->
                     </div>
                     <div class="pt-2">
                         <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -75,6 +65,8 @@
                                         <label for="role-{{ user.uid }}" class="sr-only">{{ _('Role') }}</label>
                                         <select name="role" id="role-{{ user.uid }}" class="block w-full text-sm border-gray-200 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                             <option value="user" {% if user.role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
+                                            <!-- NEW: Added 'tester' role -->
+                                            <option value="tester" {% if user.role == 'tester' %}selected{% endif %}>{{ _('Tester') }}</option>
                                             <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>{{ _('Admin') }}</option>
                                         </select>
                                     </div>

@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
-from ..views import login_required, load_user_profile, admin_required
+# Import the new, more permissive decorator
+from ..views import login_required, load_user_profile, tester_or_admin_required, admin_required
 
 api_bp = Blueprint("api_bp", __name__)
 
 @api_bp.route("/chat", methods=["POST"])
 @login_required
 @load_user_profile
-@admin_required
+@tester_or_admin_required # <-- UPDATED: Replaced @admin_required
 def chat():
     """Receives user message and returns the assistant's response."""
     # Late import of the AGENT INSTANCE to prevent circular dependencies.

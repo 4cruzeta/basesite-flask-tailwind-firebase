@@ -51,11 +51,6 @@ def load_user_profile(view):
         uid = g.user['uid']
         email = g.user.get('email')
         user_profile_data = {}
-        
-        # Determine default role based on ADMIN_USERS secret
-        admin_emails_str = get_secret('ADMIN_USERS')
-        admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
-        default_role = 'admin' if email in admin_emails else 'user'
 
         # Fetch profile from Firestore, if the database is available
         if db:
@@ -63,13 +58,37 @@ def load_user_profile(view):
             user_doc = user_ref.get()
             if user_doc.exists:
                 user_profile_data = user_doc.to_dict()
+            else:
+                # --- NEW: Initial Role Assignment Logic for new Firestore users ---
+                # If user exists in Auth but not in Firestore, create their profile.
+                admin_emails_str = get_secret('ADMIN_USERS')
+                tester_emails_str = get_secret('TESTER_USERS') # New secret for testers
+                admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
+                tester_emails = [e.strip() for e in tester_emails_str.split(',')] if tester_emails_str else []
+
+                if email in admin_emails:
+                    initial_role = 'admin'
+                elif email in tester_emails:
+                    initial_role = 'tester'
+                else:
+                    initial_role = 'user'
+
+                initial_profile = {
+                    'email': email,
+                    'full_name': g.user.get('name', ''),
+                    'role': initial_role,
+                    'status': 'active',
+                    'creation_date': datetime.utcnow(),
+                }
+                user_ref.set(initial_profile)
+                user_profile_data = initial_profile
 
         # Populate g.user_profile with combined data, prioritizing Firestore data
         g.user_profile = {
             'uid': uid,
             'email': email,
             'full_name': user_profile_data.get('full_name', g.user.get('name', '')),
-            'role': user_profile_data.get('role', default_role),
+            'role': user_profile_data.get('role', 'user'), # Default to 'user'
             'status': user_profile_data.get('status', 'active')
         }
 
@@ -89,6 +108,21 @@ def admin_required(view):
             return redirect(url_for('views.user_home', lang_code=lang_code))
         return view(**kwargs)
     return wrapped_view
+
+# --- NEW: Decorator for Testers and Admins ---
+def tester_or_admin_required(view):
+    """Decorator to ensure user has 'tester' or 'admin' role. Must run AFTER @load_user_profile."""
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        user_role = getattr(g, 'user_profile', {}).get('role')
+        if user_role not in ['admin', 'tester']:
+            lang_code = kwargs.get('lang_code', 'pt_BR')
+            if request.path.startswith('/api/'):
+                return jsonify({"success": False, "error": "Access denied"}), 403
+            return redirect(url_for('views.user_home', lang_code=lang_code))
+        return view(**kwargs)
+    return wrapped_view
+
 
 # --- Public Routes ---
 
@@ -212,9 +246,18 @@ def create_user(lang_code):
         
         new_user_auth = auth.create_user(email=email, password=password, display_name=full_name)
         
+        # --- UPDATED: Initial Role Assignment Logic ---
         admin_emails_str = get_secret('ADMIN_USERS')
+        tester_emails_str = get_secret('TESTER_USERS') # New secret for testers
         admin_emails = [e.strip() for e in admin_emails_str.split(',')] if admin_emails_str else []
-        role = 'admin' if email in admin_emails else 'user'
+        tester_emails = [e.strip() for e in tester_emails_str.split(',')] if tester_emails_str else []
+
+        if email in admin_emails:
+            role = 'admin'
+        elif email in tester_emails:
+            role = 'tester'
+        else:
+            role = 'user'
 
         user_data = {
             'email': email,
@@ -245,7 +288,8 @@ def update_user(lang_code, uid):
     
     try:
         data_to_update = {}
-        allowed_fields = ['fullName', 'status', 'role'] # Add more editable fields here
+        # --- UPDATED: Add 'role' to the list of editable fields ---
+        allowed_fields = ['fullName', 'status', 'role']
 
         # Dynamically build the update dictionary from form data
         for field in allowed_fields:
