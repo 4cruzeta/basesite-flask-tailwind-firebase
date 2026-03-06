@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EDCAT - Admin Chat Test</title>
-    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <link href="{{url_for('static',filename='css/output.css')}}" rel="stylesheet">
 </head>
 <body class="h-full font-sans antialiased">
-    <div class="flex h-screen">
+    <div class="container relative flex flex-col justify-between h-full max-w-6xl px-10 mx-auto xl:px-0 mt-5">
+        {% include 'header.html' %}
         <!-- Coluna da Esquerda: Menu de Conversas -->
         <div class="flex flex-col w-80 bg-white border-r border-gray-200">
             <div class="flex items-center justify-between p-4 border-b border-gray-200">
