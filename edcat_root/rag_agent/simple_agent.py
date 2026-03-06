@@ -22,7 +22,7 @@ def get_secret(project_id, secret_id, version_id="latest"):
         response = client.access_secret_version(request={"name": name})
         secret_value = response.payload.data.decode("UTF-8").strip()
         print(f"Successfully retrieved secret '{secret_id}'.")
-        return secret_value
+        os.environ[secret_id] = secret_value  # Set the secret as an environment variable
     except exceptions.PermissionDenied:
         print(f"\n--- PERMISSION DENIED for '{secret_id}' ---")
         print("The user does not have 'Secret Manager Secret Accessor' role.")
@@ -33,14 +33,16 @@ def get_secret(project_id, secret_id, version_id="latest"):
         return None
 
 # Call the function to get the key
-retrieved_openai_key = get_secret("edcat-site", "OPENAI_API_KEY")
+key_to_retrieve = "OPENAI_API_KEY, LANGSMITH_API_KEY"
+for key in key_to_retrieve.split(","):
+    get_secret("edcat-site", key.strip())  # Retrieve each key and set as environment variable
+if all(os.getenv(key.strip()) for key in key_to_retrieve.split(",")):
+    print("\nAll secrets retrieved successfully and set as environment variables.")
 
-# CRUCIAL FIX: Set the retrieved key as an environment variable
-# The OpenAI library looks for this exact environment variable name.
-if retrieved_openai_key:
-    os.environ["OPENAI_API_KEY"] = retrieved_openai_key
-else:
-    exit("Halting script: OpenAI API Key could not be retrieved.")
+os.environ["LANGSMITH_PROJECT"] = "rag-v6"
+os.environ["LANGSMITH_TRACING"] = "true"
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+
 # Path to chroma DB:
 CHROMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "resources", "chroma_db"))
 
@@ -71,14 +73,15 @@ def search_handbook(query: str) -> str:
 model = init_chat_model("gpt-5-mini")
 
 tools=[search_handbook]
-prompt= ("You are a helpful agent that can search the chroma DB for information."
+prompt= ("Strictly search the chroma DB for information."
+         " If the answer is not found in the chroma DB, respond with 'Information not found in Chroma DB.'"
 )
 agent = create_agent(
     model, tools, system_prompt=prompt)
     
 
 query = (
-    "Baseado no conteúdo do Chroma DB, qual é o assunto tratado?"
+    "Quantas vezes o nome 'Jung' é o citado no texto?"
 )
 
 for event in agent.stream(
