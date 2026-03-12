@@ -9,6 +9,9 @@ from google.cloud import secretmanager
 from google.cloud import firestore
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+# --- RAG Agent Import ---
+from .rag_agent.agent import RagAgent, RagAgentInitializationError
+
 # --- Global objects ---
 db = None
 
@@ -42,6 +45,7 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # --- Initialize Firebase Admin SDK ---
+    # ... (Firebase and Firestore initialization remains the same)
     try:
         firebase_creds_json = get_secret("firebase-credentials")
         if firebase_creds_json:
@@ -65,17 +69,14 @@ def create_app():
 
     # --- App Configuration ---
     app.config['SECRET_KEY'] = get_secret("website-secrets") or 'a_fallback_dev_secret_key'
-    
-    # --- THE LOGIN FIX: In a development environment (HTTP), this MUST be False. ---
-    # In production (HTTPS), this should be True for security.
     is_prod = os.environ.get('GAE_ENV', '').startswith('standard')
     app.config['SESSION_COOKIE_SECURE'] = is_prod
-    
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SESSION_COOKIE_NAME'] = '__session'
     
     # --- Language and Translation Config ---
+    # ... (Babel config remains the same)
     app.config['LANGUAGES'] = {'en_US': 'English', 'pt_BR': 'Português'}
     app.config['BABEL_DEFAULT_LOCALE'] = 'pt_BR'
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -88,28 +89,39 @@ def create_app():
 
     Babel(app, locale_selector=get_locale)
 
+    # --- Initialize and Attach RAG Agent ---
+    print("Initializing RagAgent...")
+    try:
+        rag_agent = RagAgent()
+        app.rag_agent = rag_agent
+        print("RagAgent initialized and attached to the app successfully.")
+    except RagAgentInitializationError as e:
+        print(f"FATAL: RagAgent initialization failed: {e}")
+        # This exception will propagate up and prevent the Gunicorn worker from starting,
+        # making the failure loud and clear in the server logs.
+        raise
+
     # --- Register Blueprints and Routes ---
     with app.app_context():
         from . import views
         from .whatsapp.routes import whatsapp_bp
         from .api.routes import api_bp
-        from .web_client.routes import web_client_bp # <-- IMPORT THE NEW BLUEPRINT
+        from .web_client.routes import web_client_bp
 
+        # ... (Rest of the blueprint registration and route setup)
         @app.before_request
         def set_lang_code():
             g.lang_code = request.view_args.get('lang_code') if request.view_args else None
             if g.lang_code not in app.config['LANGUAGES']:
                 g.lang_code = None
 
-        # Register Blueprints
         app.register_blueprint(views.views, url_prefix='/<lang_code>')
         app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')
         app.register_blueprint(api_bp, url_prefix='/api')
-        app.register_blueprint(web_client_bp, url_prefix='/<lang_code>/client') # <-- REGISTER THE NEW BLUEPRINT
+        app.register_blueprint(web_client_bp, url_prefix='/<lang_code>/client')
         
         @app.route('/')
         def root():
-            # Redirect root to default language home
             default_lang = app.config.get('BABEL_DEFAULT_LOCALE', 'pt_BR')
             return redirect(url_for('views.home', lang_code=default_lang))
 

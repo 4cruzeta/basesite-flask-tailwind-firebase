@@ -1,44 +1,140 @@
 
+import os
 import logging
 
-# Placeholder for RAG agent logic
-# In the future, this will connect to a vector database and a language model.
+# Google Cloud and security
+from google.cloud import secretmanager
+from google.api_core import exceptions
 
+# LangChain core components
+from langchain.agents import create_agent
+from langchain.tools import tool
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import AIMessage # <-- STRATEGIC ADDITION
+
+# LangChain integrations
+from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma
+
+# --- Custom Exception for Initialization Errors ---
+class RagAgentInitializationError(Exception):
+    """Custom exception for fatal errors during RagAgent initialization."""
+    pass
+
+# --- Utility Functions ---
+def get_secret(project_id, secret_id, version_id="latest"):
+    """Retrieves a secret from Google Secret Manager and sets it as an env var."""
+    try:
+        client = secretmanager.SecretManagerServiceClient()
+        name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+        response = client.access_secret_version(request={"name": name})
+        secret_value = response.payload.data.decode("UTF-8").strip()
+        os.environ[secret_id] = secret_value
+        logging.info(f"Successfully retrieved and set env var for '{secret_id}'.")
+        return True
+    except Exception as e:
+        logging.error(f"--- FAILED to retrieve secret '{secret_id}': {e} ---")
+        return False
+
+# --- The RAG Agent Class ---
 class RagAgent:
-    """A simple Retrieval-Augmented Generation agent."""
+    """A Retrieval-Augmented Generation agent designed to fail loudly on misconfiguration."""
 
     def __init__(self):
-        """Initializes the RAG agent."""
-        logging.info("RAG Agent initialized.")
-        # In a real scenario, this is where you would load your vector database,
-        # initialize the language model, etc.
-        self.knowledge_base = {
-            "produto": "O nosso produto é o EdCat, um editor de catálogos online revolucionário.",
-            "preço": "O EdCat tem um modelo de assinatura flexível. Para mais detalhes, consulte nossa página de preços.",
-            "ajuda": "Se precisar de ajuda, você pode consultar nossa documentação em nosso site."
-        }
+        """Initializes the entire RAG pipeline, raising an exception on any critical failure."""
+        logging.info("Initializing RAG Agent...")
+        self.agent = None
 
-    def generate_response(self, user_query: str) -> str:
-        """
-        Generates a response to a user query based on a simple knowledge base.
+        if not self._load_secrets():
+            raise RagAgentInitializationError("Agent initialization failed: Could not retrieve one or more required secrets (e.g., OPENAI_API_KEY).")
 
-        Args:
-            user_query: The question from the user.
+        try:
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+            project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
+            CHROMA_PATH = os.path.join(project_root, 'resources', 'chroma_db')
+            logging.info(f"Connecting to ChromaDB at: {CHROMA_PATH}")
+            
+            if not os.path.isdir(CHROMA_PATH):
+                raise RagAgentInitializationError(f"ChromaDB directory not found at the specified path: {CHROMA_PATH}")
 
-        Returns:
-            A string with the answer.
-        """
-        logging.info(f"RAG Agent received query: {user_query}")
-        query = user_query.lower()
+            embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+            self.vector_store = Chroma(
+                collection_name="Jung_Individuacao",
+                embedding_function=embeddings,
+                persist_directory=CHROMA_PATH,
+            )
+            logging.info("Successfully connected to ChromaDB.")
+        except Exception as e:
+            raise RagAgentInitializationError(f"Failed to connect to ChromaDB: {e}") from e
 
-        # Simple keyword-based retrieval
-        for keyword, answer in self.knowledge_base.items():
-            if keyword in query:
-                logging.info(f"Found matching keyword: '{keyword}'. Responding.")
-                return answer
+        @tool
+        def search_handbook(query: str) -> str:
+            """Search Chroma DB for information"""
+            logging.info(f"[Agent Tool] Searching handbook for: '{query}'")
+            results = self.vector_store.similarity_search(query, k=3)
+            if not results:
+                return "Nenhuma informação encontrada na base de conhecimento para essa consulta."
+            return "\n\n---\n\n".join(
+                f"Fonte: {doc.metadata.get('source', 'N/A')}\nConteúdo: {doc.page_content}"
+                for doc in results
+            )
 
-        logging.info("No matching keyword found. Using default response.")
-        return "Desculpe, não tenho informações sobre isso no momento. Por favor, tente reformular sua pergunta."
+        try:
+            model = init_chat_model("gpt-5-mini")
+            tools = [search_handbook]
+            system_prompt = ("Pesquise estritamente na base de dados Chroma por informações."
+                             " Se a resposta não for encontrada na base de dados, responda com 'A informação não foi encontrada na base de conhecimento.'")
+            
+            self.agent = create_agent(model, tools, system_prompt=system_prompt)
+            logging.info("LangChain agent created successfully.")
+        except Exception as e:
+            raise RagAgentInitializationError(f"Failed to create LangChain agent: {e}") from e
 
-# Create a single, reusable instance of the agent
-rag_agent = RagAgent()
+    def _load_secrets(self) -> bool:
+        """Loads all necessary API keys."""
+        project_id = os.environ.get('GOOGLE_CLOUD_PROJECT', 'edcat-site')
+        secrets_to_load = ["OPENAI_API_KEY", "LANGSMITH_API_KEY"]
+        results = [get_secret(project_id, secret) for secret in secrets_to_load]
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        os.environ["LANGSMITH_PROJECT"] = "rag-v6"
+        os.environ["LANGSMITH_TRACING"] = "true"
+        os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+        return all(results)
+
+    def invoke(self, input_data: dict) -> str:
+        """Invokes the agent's stream and returns only the final, synthesized response."""
+        if not self.agent:
+            return "Desculpe, o agente de IA não está funcionando no momento devido a um erro de configuração."
+        
+        try:
+            user_message = ""
+            messages = input_data.get("messages", [])
+            if messages and isinstance(messages, list):
+                user_entries = [msg for msg in messages if isinstance(msg, (list, tuple)) and len(msg) == 2 and msg[0] == 'user']
+                if user_entries:
+                    user_message = user_entries[-1][1]
+
+            if not user_message:
+                return "Formato de mensagem de entrada inválido ou mensagem de usuário não encontrada."
+
+            input_payload = {"messages": [{"role": "user", "content": user_message}]}
+
+            # --- INTELLIGENCE FILTER --- 
+            # We iterate through the stream and only keep the content of the *last* AI Message.
+            # This ensures we don't return intermediate steps like tool calls, only the final answer.
+            final_response = ""
+            for event in self.agent.stream(input_payload, stream_mode="values"):
+                last_message = event["messages"][-1]
+                # Check if the newest message in the stream is from the AI.
+                if isinstance(last_message, AIMessage):
+                    # Overwrite the final response. The last one in the stream wins.
+                    final_response = last_message.content
+            
+            if not final_response:
+                 return "O agente processou a informação, mas não gerou uma resposta final."
+
+            return final_response
+
+        except Exception as e:
+            logging.error(f"An error occurred during agent invocation: {e}")
+            return "Ocorreu um erro ao processar sua solicitação."

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "Docs by LangChain": {
+      "url": "https://docs.langchain.com/mcp",
+      "type": "langchain-docs"
+    }
+  }
+}

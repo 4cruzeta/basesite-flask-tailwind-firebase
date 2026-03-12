@@ -1,13 +1,19 @@
 import os
-from langchain.tools import tool
-from langchain.agents import create_agent
-from langchain.chat_models import init_chat_model
-from langchain.messages import HumanMessage
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
+import logging
 from pprint import pprint
-from dotenv import load_dotenv
+
+# Google Cloud and security
 from google.cloud import secretmanager
+from google.api_core import exceptions
+
+# LangChain core components
+from langchain.agents import create_agent
+from langchain.tools import tool
+from langchain.chat_models import init_chat_model
+
+# LangChain integrations
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_chroma import Chroma
 
 # --- STEP 1: Replace dotenv with Google Secret Manager ---
 
@@ -81,7 +87,7 @@ agent = create_agent(
     
 
 query = (
-    "Quantas vezes o nome 'Jung' é o citado no texto?"
+    "O que há no arquivo de texto sobre a individuação?"
 )
 
 for event in agent.stream(
