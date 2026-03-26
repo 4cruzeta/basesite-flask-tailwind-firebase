@@ -24,3 +24,5 @@ Este documento é a nossa fonte única de verdade para as próximas missões de 
 - [x] **Missão 3: Melhoria da Experiência de Edição (UX)**
 - [x] **Centro de Comando de Usuários (Admin Dashboard)**
 - [x] **Sistema de Auditoria de Sessão**
+
+Fazer o site estático responder no Firebase antes do CloudRun 

@@ -3,6 +3,10 @@
     "Docs by LangChain": {
       "url": "https://docs.langchain.com/mcp",
       "type": "langchain-docs"
-    }
+    },
+    "tailwindcss-server": {
+      "command": "npx",
+      "args": ["-y", "tailwindcss-mcp-server"]
+    }  
   }
 }

@@ -1,54 +1,69 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDCAT - Admin Chat Test</title>
+    <title>EDCAT - Admin Chat</title>
     <link href="{{url_for('static',filename='css/output.css')}}" rel="stylesheet">
 </head>
 <body class="h-full font-sans antialiased">
-    <div class="container relative flex flex-col justify-between h-full max-w-6xl px-10 mx-auto xl:px-0 mt-5">
+    <!-- Contêiner Principal: Flex vertical que ocupa toda a altura da tela -->
+    <div class="flex flex-col h-screen max-w-6xl mx-auto">
+        <!-- Cabeçalho (ocupa a altura necessária) -->
         {% include 'header.html' %}
-        <!-- Coluna da Esquerda: Menu de Conversas -->
-        <div class="flex flex-col w-80 bg-white border-r border-gray-200">
-            <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800">Conversas</h2>
-                <button class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                </button>
-            </div>
-            <div class="flex-1 overflow-y-auto">
-                <a href="#" class="block p-4 text-sm text-gray-700 hover:bg-gray-50 border-r-4 border-transparent">
-                    <p class="truncate">Primeira Conversa sobre o Projeto...</p>
-                </a>
-                <a href="#" class="block p-4 text-sm font-semibold text-blue-600 bg-blue-50 border-r-4 border-blue-500">
-                    <p class="truncate">Planejamento da Interface Web...</p>
-                </a>
-            </div>
-        </div>
 
-        <!-- Coluna da Direita: Janela de Chat Ativa -->
-        <div class="flex-1 flex flex-col bg-white">
-            <div class="flex-1 p-6 overflow-y-auto space-y-4">
-                <!-- Exemplo de Mensagens -->
-                <div class="flex justify-end">
-                    <div class="p-3 rounded-lg max-w-lg bg-blue-500 text-white shadow-sm">
-                        <p>Qual é o primeiro passo para criar a interface do cliente web?</p>
-                    </div>
+        <!-- Área de Conteúdo Principal (ocupa o espaço restante) -->
+        <div class="flex flex-1 overflow-hidden border-t border-gray-200">
+            
+            <!-- Coluna da Esquerda: Menu de Conversas (Largura fixa) -->
+            <div class="flex flex-col w-80 bg-white border-r border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800">Conversas</h2>
+                    <button class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    </button>
                 </div>
-                <div class="flex justify-start">
-                    <div class="p-3 rounded-lg max-w-lg bg-gray-100 text-gray-800 shadow-sm">
-                        <p>O primeiro passo é definir a estrutura HTML básica, agora usando Tailwind CSS para estilização, dividindo a tela em um menu lateral e uma janela principal.</p>
-                    </div>
+                <!-- A área de scroll para as conversas -->
+                <div class="flex-1 overflow-y-auto">
+                    <a href="#" class="block p-4 text-sm text-gray-700 hover:bg-gray-50 border-r-4 border-transparent">
+                        <p class="truncate">Aqui será o índice de conversas  ...</p>
+                    </a>
+                    <a href="#" class="block p-4 text-sm font-semibold text-blue-600 bg-blue-50 border-r-4 border-blue-500">
+                        <p class="truncate">Primeira conversa...</p>
+                    </a>
                 </div>
             </div>
-            <div class="p-4 bg-white border-t border-gray-200">
-                <form id="chat-form" class="flex items-center">
-                    <input type="text" id="message-input" placeholder="Digite sua mensagem..." autocomplete="off" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <button type="submit" class="ml-3 px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Enviar
-                    </button>
-                </form>
+
+            <!-- Coluna da Direita: Janela de Chat Ativa (Flexível) -->
+            <div id="chat-container" class="flex-1 flex flex-col bg-white">
+                <!-- A janela de mensagens com scroll e com o conteúdo preservado -->
+                <div id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-4">
+                    <!-- Exemplos de Mensagens (PRESERVADOS) -->
+                    <div class="flex justify-end">
+                        <div class="p-3 rounded-lg max-w-lg bg-blue-500 text-white shadow-sm">
+                            <P>Nosso sistema de consultas (RAG), possui em seu banco de dados Chroma, um texto baseado em estudos de Jung sobre o processo de individuação do ser humano.</P>
+                            <p>É possível fazer perguntas relativas à jornada do herói, como os sonhos e arquétipos se relacionam a ela, como a relação dos Deuses e Deusas afetam o processo, entre outras questões relacionadas. </p>
+                            <p>Esse é um exemplo de pergunta:</p>
+                            <p>O que o texto diz sobre arquétipos?</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-start">
+                        <div class="p-3 rounded-lg max-w-lg bg-gray-100 text-gray-800 shadow-sm">
+                            <p>Esse é um exemplo de uma provável resposta:</p>
+                            <p>A informação encontrada no texto diz, em resumo, o seguinte sobre arquétipos: - Arquétipos são imagens do inconsciente coletivo que emergem em sonhos, na imaginação ativa e em acontecimentos sincronísticos; aparecem como figuras (por exemplo: Filemon, Hermes, anima/animus, Grande Mãe, herói, salvador) que oferecem conteúdo e interação à consciência. - Eles não são pessoais, mas não...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Formulário de envio de mensagem -->
+                <div class="p-4 bg-white border-t border-gray-200">
+                    <form id="chat-form" class="flex items-center">
+                        <input type="text" id="message-input" name="message" placeholder="Digite sua pergunta..." autocomplete="off" class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button type="submit" class="ml-3 px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Enviar
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

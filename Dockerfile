@@ -12,11 +12,12 @@ RUN npm install
 COPY tailwind.config.js ./
 COPY edcat_root/static/css/input.css ./edcat_root/static/css/input.css
 COPY edcat_root/pages/templates/ ./edcat_root/pages/templates/
+COPY edcat_root/web_client/templates/ ./edcat_root/web_client/templates/
 
 # Build Tailwind CSS
 RUN npx tailwindcss \
   -i ./edcat_root/static/css/input.css \
-  -o ./edcat_root/static/css/style.css \
+  -o ./edcat_root/static/css/output.css \
   --minify
 
 # Stage 2: Build the final Python application
@@ -36,13 +37,14 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN uv pip install --no-cache-dir -r requirements.txt --system
 
-# Copy the application code
+# Copy the application code AND the database resources
 COPY edcat_root/ ./edcat_root/
+COPY resources/ ./resources/
 
 # Copy the compiled CSS from the builder stage
-COPY --from=tailwind_builder /app/edcat_root/static/css/style.css ./edcat_root/static/css/style.css
+COPY --from=tailwind_builder /app/edcat_root/static/css/output.css ./edcat_root/static/css/output.css
 
 EXPOSE 8080
 
-# Run the app using gunicorn - CORRECTED COMMAND
+# Run the app using gunicorn
 CMD ["gunicorn", "--bind", ":8080", "--workers", "1", "--threads", "8", "edcat_root.main:app"]
